@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 // One-off history load: /api/backfill?from=2026-09-01&to=2026-09-30
 export async function GET(req: Request) {
-  if (!cronAuthorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!cronAuthorized(req, true)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const u = new URL(req.url);
   const from = u.searchParams.get("from");
   const to = u.searchParams.get("to");
