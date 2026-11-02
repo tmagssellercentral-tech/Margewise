@@ -1,0 +1,208 @@
+import { byProduct, computeOrder, totals, type OrderInput, type OrderResult, type ReturnStatus } from "./engine";
+import { db, getShop, loadConfig, type Shop } from "./db";
+import { fetchOrdersUpdatedSince, money, numericId } from "./shopify";
+import { fetchCampaignDays } from "./meta";
+import { daysBetween, localDate } from "./dates";
+
+async function logRun<T>(shop: Shop, kind: string, fn: () => Promise<T>): Promise<T> {
+  const { data } = await db().from("sync_runs").insert({ shop_id: shop.id, kind }).select("id").single();
+  try {
+    const out = await fn();
+    await db().from("sync_runs").update({ finished_at: new Date().toISOString(), status: "ok", detail: JSON.stringify(out).slice(0, 2000) }).eq("id", data?.id);
+    return out;
+  } catch (e) {
+    await db().from("sync_runs").update({ finished_at: new Date().toISOString(), status: "error", detail: String(e).slice(0, 2000) }).eq("id", data?.id);
+    throw e;
+  }
+}
+
+/** Pull website orders changed since `sinceIso` and store them with their line items and unit costs. */
+export async function syncShopify(shop: Shop, sinceIso: string) {
+  return logRun(shop, "shopify", async () => {
+    const orders = await fetchOrdersUpdatedSince(sinceIso);
+    for (let i = 0; i < orders.length; i += 50) {
+      const batch = orders.slice(i, i + 50);
+      // return_status is deliberately not sent, so a status set by the merchant is never overwritten.
+      const { data: saved, error } = await db()
+        .from("orders")
+        .upsert(
+          batch.map((o) => ({
+            shop_id: shop.id,
+            shopify_id: numericId(o.id),
+            name: o.name,
+            created_at: o.createdAt,
+            local_date: localDate(o.createdAt, shop.timezone),
+            source_name: o.sourceName,
+            gateway: o.paymentGatewayNames[0] ?? null,
+            financial_status: o.displayFinancialStatus,
+            cancelled: o.cancelledAt != null,
+            shipping_incl: money(o.totalShippingPriceSet),
+            refund_incl: money(o.totalRefundedSet),
+            synced_at: new Date().toISOString(),
+          })),
+          { onConflict: "shop_id,shopify_id" },
+        )
+        .select("id, shopify_id");
+      if (error) throw new Error(error.message);
+      const idBySid = new Map(saved!.map((r) => [Number(r.shopify_id), r.id as string]));
+      const ids = [...idBySid.values()];
+      const del = await db().from("order_lines").delete().in("order_id", ids);
+      if (del.error) throw new Error(del.error.message);
+      const lines = batch.flatMap((o) =>
+        o.lineItems.nodes.map((l) => ({
+          order_id: idBySid.get(numericId(o.id)),
+          shop_id: shop.id,
+          sku: l.sku || null,
+          title: l.title,
+          quantity: l.quantity,
+          line_total_incl: money(l.discountedTotalSet),
+          unit_cost: l.variant?.inventoryItem?.unitCost ? Number(l.variant.inventoryItem.unitCost.amount) : null,
+        })),
+      );
+      if (lines.length) {
+        const ins = await db().from("order_lines").insert(lines);
+        if (ins.error) throw new Error(ins.error.message);
+      }
+    }
+    return { orders: orders.length };
+  });
+}
+
+export async function syncMeta(shop: Shop, from: string, to: string) {
+  return logRun(shop, "meta", async () => {
+    const rows = await fetchCampaignDays(from, to);
+    // Replace the window so campaigns with zero spend on a re-run don't linger.
+    const del = await db().from("ad_spend_daily").delete().eq("shop_id", shop.id).eq("platform", "meta").gte("date", from).lte("date", to);
+    if (del.error) throw new Error(del.error.message);
+    if (rows.length) {
+      const { error } = await db().from("ad_spend_daily").insert(
+        rows.map((r) => ({
+          shop_id: shop.id,
+          date: r.date,
+          platform: "meta",
+          account_id: r.accountId,
+          campaign_id: r.campaignId,
+          campaign_name: r.campaignName,
+          spend: r.spend,
+          purchase_value: r.purchaseValue,
+        })),
+      );
+      if (error) throw new Error(error.message);
+    }
+    return { rows: rows.length };
+  });
+}
+
+/** Load stored orders for a date range and run them through the engine. */
+export async function computeRange(shop: Shop, from: string, to: string) {
+  const { config, rules, bulky, costOverrides } = await loadConfig(shop);
+
+  const orders: OrderInput[] = [];
+  for (let page = 0; ; page++) {
+    const { data, error } = await db()
+      .from("orders")
+      .select("name, local_date, gateway, shipping_incl, refund_incl, return_status, order_lines(sku, title, quantity, line_total_incl, unit_cost)")
+      .eq("shop_id", shop.id)
+      .eq("cancelled", false)
+      .gte("local_date", from)
+      .lte("local_date", to)
+      .order("created_at")
+      .range(page * 1000, page * 1000 + 999);
+    if (error) throw new Error(error.message);
+    for (const o of data ?? [])
+      orders.push({
+        name: o.name,
+        localDate: o.local_date,
+        gateway: o.gateway,
+        shippingIncl: Number(o.shipping_incl),
+        refundIncl: Number(o.refund_incl),
+        returnStatus: o.return_status as ReturnStatus,
+        lines: (o.order_lines ?? []).map((l) => ({
+          sku: l.sku,
+          title: l.title,
+          quantity: l.quantity,
+          lineTotalIncl: Number(l.line_total_incl),
+          unitCost: l.unit_cost != null ? Number(l.unit_cost) : l.sku ? costOverrides.get(l.sku) ?? null : null,
+        })),
+      });
+    if (!data || data.length < 1000) break;
+  }
+
+  const ads = await db()
+    .from("ad_spend_daily")
+    .select("date, campaign_id, campaign_name, spend, purchase_value")
+    .eq("shop_id", shop.id)
+    .gte("date", from)
+    .lte("date", to);
+  if (ads.error) throw new Error(ads.error.message);
+
+  const results: OrderResult[] = orders.map((o) => computeOrder(o, config, rules, bulky));
+  const spendByDate = new Map<string, number>();
+  const campaigns = new Map<string, { id: string; name: string; spend: number; purchaseValue: number }>();
+  for (const a of ads.data ?? []) {
+    spendByDate.set(a.date, (spendByDate.get(a.date) ?? 0) + Number(a.spend));
+    const c = campaigns.get(a.campaign_id) ?? { id: a.campaign_id, name: a.campaign_name ?? a.campaign_id, spend: 0, purchaseValue: 0 };
+    c.spend += Number(a.spend);
+    c.purchaseValue += Number(a.purchase_value);
+    campaigns.set(a.campaign_id, c);
+  }
+  const totalSpend = [...spendByDate.values()].reduce((a, b) => a + b, 0);
+
+  const daily = daysBetween(from, to).map((d) => ({
+    date: d,
+    ...totals(results.filter((r) => r.localDate === d), spendByDate.get(d) ?? 0, config),
+  }));
+
+  return {
+    config,
+    results,
+    daily,
+    total: totals(results, totalSpend, config),
+    products: byProduct(results),
+    campaigns: [...campaigns.values()]
+      .map((c) => ({ ...c, roas: c.spend > 0 ? c.purchaseValue / c.spend : null }))
+      .sort((a, b) => b.spend - a.spend),
+    unmatchedGateways: [...new Set(results.map((r) => r.unmatchedGateway).filter(Boolean))] as string[],
+  };
+}
+
+/** Recompute and store daily results so the dashboard and reports read one source of truth. */
+export async function recompute(shop: Shop, from: string, to: string) {
+  const r = await computeRange(shop, from, to);
+  const { error } = await db()
+    .from("daily_results")
+    .upsert(
+      r.daily.map((d) => ({
+        shop_id: shop.id,
+        date: d.date,
+        orders: d.orders,
+        revenue_incl: d.revenueIncl,
+        net_revenue: d.netRevenue,
+        cogs: d.cogs,
+        payment_fees: d.paymentFees,
+        courier: d.courier,
+        returns_cost: d.returnsCost,
+        packaging: d.packaging,
+        contribution: d.contribution,
+        ad_spend: d.adSpend,
+        profit_after_ads: d.profitAfterAds,
+        missing_cost_skus: d.missingCostSkus,
+        computed_at: new Date().toISOString(),
+      })),
+      { onConflict: "shop_id,date" },
+    );
+  if (error) throw new Error(error.message);
+  return { days: r.daily.length, profitAfterAds: r.total.profitAfterAds };
+}
+
+/** Full nightly job: Shopify + Meta for the window, then recompute. */
+export async function runSync(from: string, to: string) {
+  const shop = await getShop();
+  const sinceIso = new Date(`${from}T00:00:00Z`).toISOString();
+  const out: Record<string, unknown> = {};
+  const errors: string[] = [];
+  try { out.shopify = await syncShopify(shop, sinceIso); } catch (e) { errors.push(`shopify: ${e}`); }
+  try { out.meta = await syncMeta(shop, from, to); } catch (e) { errors.push(`meta: ${e}`); }
+  out.recompute = await recompute(shop, from, to);
+  return { ...out, errors };
+}

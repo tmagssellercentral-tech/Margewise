@@ -1,0 +1,2104 @@
+{
+ "orders": [
+  {
+   "name": "#17238",
+   "localDate": "2026-09-01",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "InsulatedWaterBottle32oz",
+     "quantity": 2,
+     "lineTotalIncl": 798,
+     "unitCost": 138.33
+    }
+   ]
+  },
+  {
+   "name": "#17257",
+   "localDate": "2026-09-01",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17258",
+   "localDate": "2026-09-01",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "EblowWrapBlack",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 48.1
+    },
+    {
+     "sku": "Ankle&LiftingStrapsSetBlack",
+     "quantity": 1,
+     "lineTotalIncl": 499,
+     "unitCost": 188.79
+    }
+   ]
+  },
+  {
+   "name": "#17259",
+   "localDate": "2026-09-02",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "JumpRopeRed01",
+     "quantity": 1,
+     "lineTotalIncl": 199,
+     "unitCost": 50.11
+    },
+    {
+     "sku": "AbsWorkoutMachine",
+     "quantity": 1,
+     "lineTotalIncl": 1799,
+     "unitCost": 512.37
+    },
+    {
+     "sku": "FoldableRoundRebounderRed",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17260",
+   "localDate": "2026-09-02",
+   "gateway": "Float",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "LifStrapsBla",
+     "quantity": 1,
+     "lineTotalIncl": 199,
+     "unitCost": 29.54
+    },
+    {
+     "sku": "EblowWrapBlack",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 48.1
+    },
+    {
+     "sku": "SelfLockingBeltBlackL",
+     "quantity": 1,
+     "lineTotalIncl": 359,
+     "unitCost": 62.28
+    },
+    {
+     "sku": "KneeWrapBla",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 64.47
+    }
+   ]
+  },
+  {
+   "name": "#17279",
+   "localDate": "2026-09-02",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolinePi",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17280",
+   "localDate": "2026-09-02",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "DumbbellBarbellSet40kg",
+     "quantity": 1,
+     "lineTotalIncl": 899,
+     "unitCost": 220.23
+    }
+   ]
+  },
+  {
+   "name": "#17281",
+   "localDate": "2026-09-02",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "WallBall10",
+     "quantity": 1,
+     "lineTotalIncl": 999,
+     "unitCost": 301.13
+    }
+   ]
+  },
+  {
+   "name": "#17282",
+   "localDate": "2026-09-02",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17305",
+   "localDate": "2026-09-03",
+   "gateway": "Peach Payments",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FabResist 01",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 71.91
+    },
+    {
+     "sku": "LatexBands5Set",
+     "quantity": 1,
+     "lineTotalIncl": 229,
+     "unitCost": 46.41
+    }
+   ]
+  },
+  {
+   "name": "#17306",
+   "localDate": "2026-09-03",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "Medium",
+     "quantity": 1,
+     "lineTotalIncl": 259,
+     "unitCost": 57.75
+    },
+    {
+     "sku": "TricepRope01",
+     "quantity": 1,
+     "lineTotalIncl": 279,
+     "unitCost": 83.98
+    }
+   ]
+  },
+  {
+   "name": "#17326",
+   "localDate": "2026-09-04",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FabResist 01",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 71.91
+    }
+   ]
+  },
+  {
+   "name": "#17327",
+   "localDate": "2026-09-05",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17350",
+   "localDate": "2026-09-05",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderRed",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17351",
+   "localDate": "2026-09-06",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17352",
+   "localDate": "2026-09-06",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolinePi",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17374",
+   "localDate": "2026-09-06",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17375",
+   "localDate": "2026-09-06",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17376",
+   "localDate": "2026-09-06",
+   "gateway": "Peach Payments",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17398",
+   "localDate": "2026-09-07",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "DumbbellBarbellSet40kg",
+     "quantity": 1,
+     "lineTotalIncl": 899,
+     "unitCost": 220.23
+    },
+    {
+     "sku": "MultiLevelBench",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1303.39
+    }
+   ]
+  },
+  {
+   "name": "#17399",
+   "localDate": "2026-09-07",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "WallPullUpBar01",
+     "quantity": 1,
+     "lineTotalIncl": 1699,
+     "unitCost": 555.29
+    }
+   ]
+  },
+  {
+   "name": "#17400",
+   "localDate": "2026-09-07",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableStairClimber",
+     "quantity": 1,
+     "lineTotalIncl": 1999,
+     "unitCost": 752.59
+    },
+    {
+     "sku": "6D-CG1F-EXOW",
+     "quantity": 1,
+     "lineTotalIncl": 229,
+     "unitCost": 24.49
+    },
+    {
+     "sku": "WallPullUpBar01",
+     "quantity": 1,
+     "lineTotalIncl": 1699,
+     "unitCost": 555.29
+    },
+    {
+     "sku": "SuspTrainYe01",
+     "quantity": 1,
+     "lineTotalIncl": 469,
+     "unitCost": 176.37
+    }
+   ]
+  },
+  {
+   "name": "#17401",
+   "localDate": "2026-09-07",
+   "gateway": "Peach Payments",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoamRollerBlue",
+     "quantity": 1,
+     "lineTotalIncl": 349,
+     "unitCost": 83.21
+    },
+    {
+     "sku": "FixedRubberWeights20kg",
+     "quantity": 1,
+     "lineTotalIncl": 1899,
+     "unitCost": 806.76
+    },
+    {
+     "sku": "JumpRopeRed01",
+     "quantity": 1,
+     "lineTotalIncl": 199,
+     "unitCost": 50.11
+    },
+    {
+     "sku": "HexDumbbell30kg",
+     "quantity": 2,
+     "lineTotalIncl": 3198,
+     "unitCost": 721.36
+    }
+   ]
+  },
+  {
+   "name": "#17402",
+   "localDate": "2026-09-08",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FabResist 01",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 71.91
+    }
+   ]
+  },
+  {
+   "name": "#17436",
+   "localDate": "2026-09-09",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolinePi",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17455",
+   "localDate": "2026-09-10",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderPink",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17456",
+   "localDate": "2026-09-10",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "WallPullUpBar01",
+     "quantity": 1,
+     "lineTotalIncl": 1699,
+     "unitCost": 555.29
+    }
+   ]
+  },
+  {
+   "name": "#17457",
+   "localDate": "2026-09-10",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "MultiLevelBench",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1303.39
+    }
+   ]
+  },
+  {
+   "name": "#17460",
+   "localDate": "2026-09-11",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "MultiLevelBench",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1303.39
+    }
+   ]
+  },
+  {
+   "name": "#17473",
+   "localDate": "2026-09-11",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "WallPullUpBar01",
+     "quantity": 1,
+     "lineTotalIncl": 1699,
+     "unitCost": 555.29
+    }
+   ]
+  },
+  {
+   "name": "#17474",
+   "localDate": "2026-09-11",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17475",
+   "localDate": "2026-09-12",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "WallPullUpBar01",
+     "quantity": 1,
+     "lineTotalIncl": 1699,
+     "unitCost": 555.29
+    }
+   ]
+  },
+  {
+   "name": "#17481",
+   "localDate": "2026-09-12",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolineGr",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17482",
+   "localDate": "2026-09-12",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "MultiLevelBench",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1303.39
+    }
+   ]
+  },
+  {
+   "name": "#17483",
+   "localDate": "2026-09-12",
+   "gateway": "PayFast",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FabResist 01",
+     "quantity": 2,
+     "lineTotalIncl": 798,
+     "unitCost": 71.91
+    }
+   ]
+  },
+  {
+   "name": "#17488",
+   "localDate": "2026-09-13",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "WallPullUpBar01",
+     "quantity": 1,
+     "lineTotalIncl": 1699,
+     "unitCost": 555.29
+    }
+   ]
+  },
+  {
+   "name": "#17489",
+   "localDate": "2026-09-13",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17490",
+   "localDate": "2026-09-13",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "LiftingBenchWithRack",
+     "quantity": 1,
+     "lineTotalIncl": 1999,
+     "unitCost": 723.52
+    }
+   ]
+  },
+  {
+   "name": "#17510",
+   "localDate": "2026-09-13",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 2199,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolineGr",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17511",
+   "localDate": "2026-09-14",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17517",
+   "localDate": "2026-09-14",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17518",
+   "localDate": "2026-09-14",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "PyloBox30x24x20Inches",
+     "quantity": 1,
+     "lineTotalIncl": 3399,
+     "unitCost": 1533.44
+    }
+   ]
+  },
+  {
+   "name": "#17519",
+   "localDate": "2026-09-14",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderRed",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17520",
+   "localDate": "2026-09-14",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "BattleRope15m",
+     "quantity": 2,
+     "lineTotalIncl": 1798,
+     "unitCost": 577.07
+    }
+   ]
+  },
+  {
+   "name": "#17521",
+   "localDate": "2026-09-14",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolineGr",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17592",
+   "localDate": "2026-09-15",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 2,
+     "lineTotalIncl": 4798,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17617",
+   "localDate": "2026-09-16",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17629",
+   "localDate": "2026-09-16",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17648",
+   "localDate": "2026-09-17",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderPink",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    },
+    {
+     "sku": "LatexBands5Set",
+     "quantity": 1,
+     "lineTotalIncl": 229,
+     "unitCost": 46.41
+    }
+   ]
+  },
+  {
+   "name": "#17672",
+   "localDate": "2026-09-17",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberPink",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17673",
+   "localDate": "2026-09-17",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "JumpRopeBla01",
+     "quantity": 1,
+     "lineTotalIncl": 199,
+     "unitCost": 50.11
+    }
+   ]
+  },
+  {
+   "name": "#17681",
+   "localDate": "2026-09-18",
+   "gateway": "manual",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "ChairWithBall",
+     "quantity": 1,
+     "lineTotalIncl": 1699,
+     "unitCost": 478.66
+    }
+   ]
+  },
+  {
+   "name": "#17689",
+   "localDate": "2026-09-18",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "MultiLevelBench",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1303.39
+    },
+    {
+     "sku": "AdjDumbellsIronBla(2kg inc.)",
+     "quantity": 2,
+     "lineTotalIncl": 7998,
+     "unitCost": 2639.4
+    }
+   ]
+  },
+  {
+   "name": "#17695",
+   "localDate": "2026-09-18",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "PullAssist Set 5",
+     "quantity": 1,
+     "lineTotalIncl": 649,
+     "unitCost": 235.96
+    }
+   ]
+  },
+  {
+   "name": "#17696",
+   "localDate": "2026-09-18",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17700",
+   "localDate": "2026-09-18",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "MultiLevelBench",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1303.39
+    },
+    {
+     "sku": "IndoorExerciseBike",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1702.05
+    }
+   ]
+  },
+  {
+   "name": "#17705",
+   "localDate": "2026-09-19",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17712",
+   "localDate": "2026-09-19",
+   "gateway": "Peach Payments",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "LiftingHooks01",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 74.16
+    }
+   ]
+  },
+  {
+   "name": "#17713",
+   "localDate": "2026-09-19",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17714",
+   "localDate": "2026-09-19",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FingerExerciser3",
+     "quantity": 1,
+     "lineTotalIncl": 169,
+     "unitCost": 29.27
+    },
+    {
+     "sku": "AnkleSandBagsGrey",
+     "quantity": 1,
+     "lineTotalIncl": 339,
+     "unitCost": 64.9
+    },
+    {
+     "sku": "AnkleWeightPi",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 140.93
+    }
+   ]
+  },
+  {
+   "name": "#17715",
+   "localDate": "2026-09-19",
+   "gateway": "Bank Deposit",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "IndoorExerciseBike",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1702.05
+    }
+   ]
+  },
+  {
+   "name": "#17728",
+   "localDate": "2026-09-19",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoamRollerBlack",
+     "quantity": 4,
+     "lineTotalIncl": 1396,
+     "unitCost": 83.21
+    },
+    {
+     "sku": "JumpRopeBla01",
+     "quantity": 5,
+     "lineTotalIncl": 995,
+     "unitCost": 50.11
+    },
+    {
+     "sku": "LatexBands5Set",
+     "quantity": 2,
+     "lineTotalIncl": 458,
+     "unitCost": 46.41
+    }
+   ]
+  },
+  {
+   "name": "#17729",
+   "localDate": "2026-09-19",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "ChairWithBall",
+     "quantity": 1,
+     "lineTotalIncl": 1799,
+     "unitCost": 478.66
+    }
+   ]
+  },
+  {
+   "name": "#17744",
+   "localDate": "2026-09-20",
+   "gateway": "Ozow",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolinePi",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17753",
+   "localDate": "2026-09-20",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "DumbbellBarbellSet40kg",
+     "quantity": 1,
+     "lineTotalIncl": 899,
+     "unitCost": 220.23
+    },
+    {
+     "sku": "SuspTrainYe01",
+     "quantity": 1,
+     "lineTotalIncl": 469,
+     "unitCost": 176.37
+    }
+   ]
+  },
+  {
+   "name": "#17791",
+   "localDate": "2026-09-21",
+   "gateway": "Peach Payments",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17794",
+   "localDate": "2026-09-21",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "MultiLevelBench",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1303.39
+    }
+   ]
+  },
+  {
+   "name": "#17795",
+   "localDate": "2026-09-21",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "Large",
+     "quantity": 1,
+     "lineTotalIncl": 259,
+     "unitCost": 57.75
+    }
+   ]
+  },
+  {
+   "name": "#17799",
+   "localDate": "2026-09-22",
+   "gateway": "Peach Payments",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexDumbbell7.5kg",
+     "quantity": 2,
+     "lineTotalIncl": 978,
+     "unitCost": 180.34
+    }
+   ]
+  },
+  {
+   "name": "#17803",
+   "localDate": "2026-09-22",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "MultiLevelBench",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1303.39
+    }
+   ]
+  },
+  {
+   "name": "#17813",
+   "localDate": "2026-09-22",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolinePi",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17814",
+   "localDate": "2026-09-22",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "WorkoutGlovePinkM",
+     "quantity": 1,
+     "lineTotalIncl": 259,
+     "unitCost": 57.75
+    },
+    {
+     "sku": "Extra Large",
+     "quantity": 1,
+     "lineTotalIncl": 259,
+     "unitCost": 57.75
+    }
+   ]
+  },
+  {
+   "name": "#17815",
+   "localDate": "2026-09-22",
+   "gateway": "Peach Payments",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "UnderDeskStepper",
+     "quantity": 1,
+     "lineTotalIncl": 2799,
+     "unitCost": 1341.86
+    },
+    {
+     "sku": "ChairWithBall",
+     "quantity": 1,
+     "lineTotalIncl": 1799,
+     "unitCost": 478.66
+    }
+   ]
+  },
+  {
+   "name": "#17825",
+   "localDate": "2026-09-23",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "ChairWithBall",
+     "quantity": 1,
+     "lineTotalIncl": 1799,
+     "unitCost": 478.66
+    }
+   ]
+  },
+  {
+   "name": "#17831",
+   "localDate": "2026-09-23",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "VinylCoatedKettlebell12kg",
+     "quantity": 1,
+     "lineTotalIncl": 879,
+     "unitCost": 328.99
+    },
+    {
+     "sku": "HexDumbbell15kg",
+     "quantity": 1,
+     "lineTotalIncl": 839,
+     "unitCost": 360.45
+    }
+   ]
+  },
+  {
+   "name": "#17840",
+   "localDate": "2026-09-23",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "JumpRopeBla01",
+     "quantity": 1,
+     "lineTotalIncl": 199,
+     "unitCost": 50.11
+    }
+   ]
+  },
+  {
+   "name": "#17843",
+   "localDate": "2026-09-23",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "IndoorExerciseBike",
+     "quantity": 1,
+     "lineTotalIncl": 3999,
+     "unitCost": 1702.05
+    }
+   ]
+  },
+  {
+   "name": "#17849",
+   "localDate": "2026-09-24",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "ChairWithBall",
+     "quantity": 1,
+     "lineTotalIncl": 1799,
+     "unitCost": 478.66
+    }
+   ]
+  },
+  {
+   "name": "#17850",
+   "localDate": "2026-09-24",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "AnkleBandsCuffsBlack",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 99.76
+    },
+    {
+     "sku": "FabResist 01",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 71.91
+    },
+    {
+     "sku": "AnkleWeightBr",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 140.93
+    }
+   ]
+  },
+  {
+   "name": "#17851",
+   "localDate": "2026-09-24",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17854",
+   "localDate": "2026-09-24",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "LiftingHooks01",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 74.16
+    }
+   ]
+  },
+  {
+   "name": "#17857",
+   "localDate": "2026-09-24",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "AdjDumbellsIronBla(2kg inc.)",
+     "quantity": 2,
+     "lineTotalIncl": 7998,
+     "unitCost": 2639.4
+    }
+   ]
+  },
+  {
+   "name": "#17865",
+   "localDate": "2026-09-24",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberPink",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17869",
+   "localDate": "2026-09-24",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "BarbellGripBlue",
+     "quantity": 1,
+     "lineTotalIncl": 199,
+     "unitCost": 87.59
+    },
+    {
+     "sku": "DumbbellBarbellSet40kg",
+     "quantity": 1,
+     "lineTotalIncl": 899,
+     "unitCost": 220.23
+    }
+   ]
+  },
+  {
+   "name": "#17870",
+   "localDate": "2026-09-24",
+   "gateway": "Bank Deposit",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoamRollerBlack",
+     "quantity": 1,
+     "lineTotalIncl": 349,
+     "unitCost": 83.21
+    },
+    {
+     "sku": "AnkleBandsCuffsBlack",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 99.76
+    },
+    {
+     "sku": "AbsWheelBlue",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 163.67
+    }
+   ]
+  },
+  {
+   "name": "#17878",
+   "localDate": "2026-09-25",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "ChairWithBall",
+     "quantity": 1,
+     "lineTotalIncl": 1799,
+     "unitCost": 478.66
+    },
+    {
+     "sku": "FoldableRoundRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17881",
+   "localDate": "2026-09-25",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17882",
+   "localDate": "2026-09-25",
+   "gateway": "Bank Deposit",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolineGr",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17883",
+   "localDate": "2026-09-25",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "AdjDumbellsIronBla(2kg inc.)",
+     "quantity": 2,
+     "lineTotalIncl": 7998,
+     "unitCost": 2639.4
+    }
+   ]
+  },
+  {
+   "name": "#17885",
+   "localDate": "2026-09-25",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17901",
+   "localDate": "2026-09-25",
+   "gateway": "Ozow",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderPink",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17908",
+   "localDate": "2026-09-26",
+   "gateway": "PayFast",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "EblowWrapBlack",
+     "quantity": 1,
+     "lineTotalIncl": 439,
+     "unitCost": 48.1
+    },
+    {
+     "sku": "WristStraps01",
+     "quantity": 1,
+     "lineTotalIncl": 299,
+     "unitCost": 38.2
+    }
+   ]
+  },
+  {
+   "name": "#17909",
+   "localDate": "2026-09-26",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolineGr",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17915",
+   "localDate": "2026-09-26",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17922",
+   "localDate": "2026-09-26",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolineGr",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17923",
+   "localDate": "2026-09-26",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolinePi",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17926",
+   "localDate": "2026-09-27",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17931",
+   "localDate": "2026-09-27",
+   "gateway": "Peach Payments",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "KneeWrapBla",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 64.47
+    }
+   ]
+  },
+  {
+   "name": "#17932",
+   "localDate": "2026-09-27",
+   "gateway": "Bank Deposit",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "AnkleBandsCuffsBlack",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 99.76
+    },
+    {
+     "sku": "3TierDumbbellRack",
+     "quantity": 1,
+     "lineTotalIncl": 2999,
+     "unitCost": 1228.76
+    },
+    {
+     "sku": "LongFabricBands3",
+     "quantity": 1,
+     "lineTotalIncl": 329,
+     "unitCost": 179.73
+    },
+    {
+     "sku": "NewExerciseStepper",
+     "quantity": 1,
+     "lineTotalIncl": 899,
+     "unitCost": 418.5
+    },
+    {
+     "sku": "FabResist 01",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 71.91
+    }
+   ]
+  },
+  {
+   "name": "#17939",
+   "localDate": "2026-09-27",
+   "gateway": "Ozow",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberBlue",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#17946",
+   "localDate": "2026-09-27",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#17988",
+   "localDate": "2026-09-28",
+   "gateway": "Ozow",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "StairClimberPink",
+     "quantity": 1,
+     "lineTotalIncl": 2399,
+     "unitCost": 752.59
+    }
+   ]
+  },
+  {
+   "name": "#18010",
+   "localDate": "2026-09-28",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "TriangleBarbellRack",
+     "quantity": 1,
+     "lineTotalIncl": 1899,
+     "unitCost": 563.3
+    }
+   ]
+  },
+  {
+   "name": "#18011",
+   "localDate": "2026-09-28",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "CurlOlympicBar20",
+     "quantity": 1,
+     "lineTotalIncl": 1899,
+     "unitCost": 527.6
+    },
+    {
+     "sku": "QuickReleaseBarbellCipsBlack",
+     "quantity": 1,
+     "lineTotalIncl": 399,
+     "unitCost": 158.85
+    }
+   ]
+  },
+  {
+   "name": "#18012",
+   "localDate": "2026-09-28",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "ChairWithBall",
+     "quantity": 1,
+     "lineTotalIncl": 1799,
+     "unitCost": 478.66
+    }
+   ]
+  },
+  {
+   "name": "#18043",
+   "localDate": "2026-09-29",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FlatWeightBench",
+     "quantity": 1,
+     "lineTotalIncl": 1799,
+     "unitCost": 382.65
+    }
+   ]
+  },
+  {
+   "name": "#18059",
+   "localDate": "2026-09-29",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#18060",
+   "localDate": "2026-09-29",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FTrampolinePi",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#18065",
+   "localDate": "2026-09-29",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#18068",
+   "localDate": "2026-09-29",
+   "gateway": "Ozow",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "HexagonRebounderPink",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#18082",
+   "localDate": "2026-09-29",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderRed",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#18103",
+   "localDate": "2026-09-30",
+   "gateway": "Stitch Express",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "3TierDumbbellRack",
+     "quantity": 1,
+     "lineTotalIncl": 2999,
+     "unitCost": 1228.76
+    }
+   ]
+  },
+  {
+   "name": "#18104",
+   "localDate": "2026-09-30",
+   "gateway": "Stitch Express",
+   "shippingIncl": 150,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "DumbbellBarbellSet40kg",
+     "quantity": 1,
+     "lineTotalIncl": 899,
+     "unitCost": 220.23
+    }
+   ]
+  },
+  {
+   "name": "#18105",
+   "localDate": "2026-09-30",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderGreen",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  },
+  {
+   "name": "#18135",
+   "localDate": "2026-09-30",
+   "gateway": "PayFast",
+   "shippingIncl": 0,
+   "refundIncl": 0,
+   "returnStatus": "none",
+   "lines": [
+    {
+     "sku": "FoldableRoundRebounderPink",
+     "quantity": 1,
+     "lineTotalIncl": 2199,
+     "unitCost": 574.39
+    }
+   ]
+  }
+ ],
+ "bulky": [
+  "3TierDumbbellRack",
+  "AbsWorkoutMachine",
+  "AdjDumbellsIronBla(2kg inc.)",
+  "BattleRope15m",
+  "ChairWithBall",
+  "CurlOlympicBar20",
+  "DumbbellBarbellSet40kg",
+  "FTrampolineGr",
+  "FTrampolinePi",
+  "FixedRubberWeights20kg",
+  "FlatWeightBench",
+  "FoldableRoundRebounderGreen",
+  "FoldableRoundRebounderPink",
+  "FoldableRoundRebounderRed",
+  "FoldableStairClimber",
+  "HexDumbbell30kg",
+  "HexagonRebounderGreen",
+  "HexagonRebounderPink",
+  "HexagonRebounderRed",
+  "IndoorExerciseBike",
+  "LiftingBenchWithRack",
+  "MultiLevelBench",
+  "NewExerciseStepper",
+  "PyloBox30x24x20Inches",
+  "StairClimberBlue",
+  "StairClimberPink",
+  "TriangleBarbellRack",
+  "UnderDeskStepper",
+  "WallPullUpBar01"
+ ],
+ "metaSpend": 68376.67
+}
