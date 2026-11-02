@@ -43,10 +43,36 @@ query Orders($first: Int!, $after: String, $q: String!) {
   }
 }`;
 
+let cached: { token: string; expiresAt: number } | null = null;
+
+/**
+ * Access token for the Admin API. Dev Dashboard apps use the client credentials grant:
+ * the app swaps its client ID and secret for a token valid 24 hours (stores in the same
+ * Shopify organization only). A legacy SHOPIFY_ADMIN_TOKEN is used if set instead.
+ */
+async function accessToken(store: string): Promise<string> {
+  if (process.env.SHOPIFY_ADMIN_TOKEN) return process.env.SHOPIFY_ADMIN_TOKEN;
+  if (cached && cached.expiresAt > Date.now() + 60_000) return cached.token;
+  const id = process.env.SHOPIFY_CLIENT_ID;
+  const secret = process.env.SHOPIFY_CLIENT_SECRET;
+  if (!id || !secret) throw new Error("Set SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET (or SHOPIFY_ADMIN_TOKEN)");
+  const res = await fetch(`https://${store}/admin/oauth/access_token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "client_credentials", client_id: id, client_secret: secret }),
+    cache: "no-store",
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok || !body.access_token)
+    throw new Error(`Shopify token request failed (${res.status}): ${JSON.stringify(body).slice(0, 300)}`);
+  cached = { token: body.access_token, expiresAt: Date.now() + Number(body.expires_in ?? 3600) * 1000 };
+  return cached.token;
+}
+
 async function gql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
   const store = process.env.SHOPIFY_STORE; // e.g. flexi-muscles.myshopify.com
-  const token = process.env.SHOPIFY_ADMIN_TOKEN;
-  if (!store || !token) throw new Error("SHOPIFY_STORE and SHOPIFY_ADMIN_TOKEN must be set");
+  if (!store) throw new Error("SHOPIFY_STORE must be set");
+  const token = await accessToken(store);
   for (let attempt = 0; attempt < 5; attempt++) {
     const res = await fetch(`https://${store}/admin/api/${API_VERSION}/graphql.json`, {
       method: "POST",
