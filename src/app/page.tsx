@@ -90,11 +90,20 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
           <div className="logo">Marge<span>wise</span></div>
           <div className="shop">{shop.name} · website orders · {range.from} to {range.to}</div>
         </div>
-        <nav className="ranges">
-          {PRESETS.map((p) => (
-            <a key={p.key} href={`/?range=${p.key}`} className={range.key === p.key ? "on" : ""}>{p.label}</a>
-          ))}
-        </nav>
+        <div className="pickers">
+          <nav className="ranges">
+            {PRESETS.map((p) => (
+              <a key={p.key} href={`/?range=${p.key}`} className={range.key === p.key ? "on" : ""}>{p.label}</a>
+            ))}
+          </nav>
+          {/* Plain GET form: works without JavaScript and keeps the range in the URL, so it can be bookmarked. */}
+          <form className={`custom${range.key === "custom" ? " on" : ""}`} method="get" action="/">
+            <span>Custom</span>
+            <label>From <input type="date" name="from" defaultValue={range.from} max={today} required /></label>
+            <label>To <input type="date" name="to" defaultValue={range.to} max={today} required /></label>
+            <button type="submit">Apply</button>
+          </form>
+        </div>
       </header>
 
       <p className="verdict">
