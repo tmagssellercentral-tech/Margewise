@@ -1,7 +1,8 @@
-import { byProduct, computeOrder, totals, type OrderInput, type OrderResult, type ReturnStatus } from "./engine";
+import { adCost, byProduct, computeOrder, totals, type OrderInput, type OrderResult, type ReturnStatus } from "./engine";
 import { db, getShop, loadConfig, type Shop } from "./db";
 import { fetchOrdersUpdatedSince, money, numericId } from "./shopify";
-import { fetchCampaignDays } from "./meta";
+import { fetchCampaignDays, type CampaignDay } from "./meta";
+import { fetchGoogleCampaignDays, googleConfigured } from "./google";
 import { daysBetween, localDate } from "./dates";
 
 async function logRun<T>(shop: Shop, kind: string, fn: () => Promise<T>): Promise<T> {
@@ -68,18 +69,22 @@ export async function syncShopify(shop: Shop, sinceIso: string) {
   });
 }
 
-export async function syncMeta(shop: Shop, from: string, to: string) {
-  return logRun(shop, "meta", async () => {
-    const rows = await fetchCampaignDays(from, to);
-    // Replace the window so campaigns with zero spend on a re-run don't linger.
-    const del = await db().from("ad_spend_daily").delete().eq("shop_id", shop.id).eq("platform", "meta").gte("date", from).lte("date", to);
+export type AdPlatform = "meta" | "google";
+
+/** Store one platform's campaign spend for a window, replacing what was there. */
+export async function syncAds(shop: Shop, platform: AdPlatform, from: string, to: string, fetch: () => Promise<CampaignDay[]>) {
+  return logRun(shop, platform, async () => {
+    const rows = await fetch();
+    // Fetch first, then replace the window, so a failed pull never wipes stored spend
+    // and campaigns with zero spend on a re-run don't linger.
+    const del = await db().from("ad_spend_daily").delete().eq("shop_id", shop.id).eq("platform", platform).gte("date", from).lte("date", to);
     if (del.error) throw new Error(del.error.message);
     if (rows.length) {
       const { error } = await db().from("ad_spend_daily").insert(
         rows.map((r) => ({
           shop_id: shop.id,
           date: r.date,
-          platform: "meta",
+          platform,
           account_id: r.accountId,
           campaign_id: r.campaignId,
           campaign_name: r.campaignName,
@@ -92,6 +97,12 @@ export async function syncMeta(shop: Shop, from: string, to: string) {
     return { rows: rows.length };
   });
 }
+
+export const syncMeta = (shop: Shop, from: string, to: string) =>
+  syncAds(shop, "meta", from, to, () => fetchCampaignDays(from, to));
+
+export const syncGoogle = (shop: Shop, from: string, to: string) =>
+  syncAds(shop, "google", from, to, () => fetchGoogleCampaignDays(from, to, shop.currency));
 
 /** Load stored orders for a date range and run them through the engine. */
 export async function computeRange(shop: Shop, from: string, to: string) {
@@ -130,7 +141,7 @@ export async function computeRange(shop: Shop, from: string, to: string) {
 
   const ads = await db()
     .from("ad_spend_daily")
-    .select("date, campaign_id, campaign_name, spend, purchase_value")
+    .select("date, platform, campaign_id, campaign_name, spend, purchase_value")
     .eq("shop_id", shop.id)
     .gte("date", from)
     .lte("date", to);
@@ -138,13 +149,16 @@ export async function computeRange(shop: Shop, from: string, to: string) {
 
   const results: OrderResult[] = orders.map((o) => computeOrder(o, config, rules, bulky));
   const spendByDate = new Map<string, number>();
-  const campaigns = new Map<string, { id: string; name: string; spend: number; purchaseValue: number }>();
+  const campaigns = new Map<string, { id: string; platform: string; name: string; spend: number; purchaseValue: number }>();
+  const spendByPlatform = new Map<string, number>();
   for (const a of ads.data ?? []) {
     spendByDate.set(a.date, (spendByDate.get(a.date) ?? 0) + Number(a.spend));
-    const c = campaigns.get(a.campaign_id) ?? { id: a.campaign_id, name: a.campaign_name ?? a.campaign_id, spend: 0, purchaseValue: 0 };
+    spendByPlatform.set(a.platform, (spendByPlatform.get(a.platform) ?? 0) + Number(a.spend));
+    const key = `${a.platform}:${a.campaign_id}`;
+    const c = campaigns.get(key) ?? { id: key, platform: a.platform, name: a.campaign_name ?? a.campaign_id, spend: 0, purchaseValue: 0 };
     c.spend += Number(a.spend);
     c.purchaseValue += Number(a.purchase_value);
-    campaigns.set(a.campaign_id, c);
+    campaigns.set(key, c);
   }
   const totalSpend = [...spendByDate.values()].reduce((a, b) => a + b, 0);
 
@@ -159,6 +173,10 @@ export async function computeRange(shop: Shop, from: string, to: string) {
     daily,
     total: totals(results, totalSpend, config),
     products: byProduct(results),
+    // Ad cost (after the store's VAT treatment) per platform, largest first.
+    platforms: [...spendByPlatform.entries()]
+      .map(([platform, raw]) => ({ platform, adCost: adCost(raw, config) }))
+      .sort((a, b) => b.adCost - a.adCost),
     campaigns: [...campaigns.values()]
       .map((c) => ({ ...c, roas: c.spend > 0 ? c.purchaseValue / c.spend : null }))
       .sort((a, b) => b.spend - a.spend),
@@ -195,7 +213,7 @@ export async function recompute(shop: Shop, from: string, to: string) {
   return { days: r.daily.length, profitAfterAds: r.total.profitAfterAds };
 }
 
-/** Full nightly job: Shopify + Meta for the window, then recompute. */
+/** Full nightly job: Shopify and every configured ad platform for the window, then recompute. */
 export async function runSync(from: string, to: string) {
   const shop = await getShop();
   const sinceIso = new Date(`${from}T00:00:00Z`).toISOString();
@@ -203,6 +221,9 @@ export async function runSync(from: string, to: string) {
   const errors: string[] = [];
   try { out.shopify = await syncShopify(shop, sinceIso); } catch (e) { errors.push(`shopify: ${e}`); }
   try { out.meta = await syncMeta(shop, from, to); } catch (e) { errors.push(`meta: ${e}`); }
+  if (googleConfigured()) {
+    try { out.google = await syncGoogle(shop, from, to); } catch (e) { errors.push(`google: ${e}`); }
+  } else out.google = "not connected";
   out.recompute = await recompute(shop, from, to);
   return { ...out, errors };
 }

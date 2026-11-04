@@ -38,6 +38,8 @@ const R = (n: number, dp = 0) =>
 const X = (n: number | null) => (n == null ? "–" : `${n.toFixed(2)}x`);
 const P = (n: number) => `${(n * 100).toFixed(1)}%`;
 const sign = (n: number) => (n < 0 ? "neg" : "pos");
+const PLATFORM: Record<string, string> = { shopify: "Shopify", meta: "Meta", google: "Google", tiktok: "TikTok", pinterest: "Pinterest", snapchat: "Snapchat", microsoft: "Microsoft", manual: "Other" };
+const pname = (p: string) => PLATFORM[p] ?? p;
 
 function ProfitChart({ days }: { days: { date: string; profitAfterAds: number }[] }) {
   if (days.length < 2) return null;
@@ -70,7 +72,11 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
   const r = await computeRange(shop, range.from, range.to);
   const t = r.total;
   const last = await db().from("sync_runs").select("kind, finished_at, status").eq("shop_id", shop.id)
-    .order("started_at", { ascending: false }).limit(4);
+    .order("started_at", { ascending: false }).limit(20);
+  // Latest run per source; a failed ad-platform pull means its recent spend is missing.
+  const latest = new Map<string, { kind: string; status: string; finished_at: string | null }>();
+  for (const s of last.data ?? []) if (!latest.has(s.kind)) latest.set(s.kind, s);
+  const failed = [...latest.values()].filter((s) => s.status === "error").map((s) => s.kind);
 
   const days = Math.round((Date.parse(range.to) - Date.parse(range.from)) / 864e5) + 1;
   const best = r.products.slice(0, 8);
@@ -99,6 +105,9 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
       {t.missingCostSkus.length > 0 && (
         <div className="alert">Missing product cost for {t.missingCostSkus.join(", ")}. Profit is overstated until these are set in Shopify.</div>
       )}
+      {failed.length > 0 && (
+        <div className="alert">Last sync failed for {failed.map(pname).join(", ")}. Data from that source after its last good sync is missing, so profit may be overstated.</div>
+      )}
       {r.unmatchedGateways.length > 0 && (
         <div className="alert">No fee rule for payment method: {r.unmatchedGateways.join(", ")}. Their fees are counted as zero.</div>
       )}
@@ -107,9 +116,9 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
         <div className="tile hero"><div className="k">Profit after ads</div><div className={`v ${sign(t.profitAfterAds)}`}>{R(t.profitAfterAds)}</div><div className="s">before fixed costs</div></div>
         <div className="tile"><div className="k">Contribution before ads</div><div className="v">{R(t.contribution)}</div><div className="s">{t.netRevenue ? P(t.contribution / t.netRevenue) : "–"} of net revenue</div></div>
         <div className="tile"><div className="k">Net revenue</div><div className="v">{R(t.netRevenue)}</div><div className="s">ex VAT, after refunds</div></div>
-        <div className="tile"><div className="k">Meta spend</div><div className="v">{R(t.adSpend)}</div><div className="s">ex VAT</div></div>
+        <div className="tile"><div className="k">Ad spend</div><div className="v">{R(t.adSpend)}</div><div className="s">{r.platforms.length ? r.platforms.map((p) => `${pname(p.platform)} ${R(p.adCost)}`).join(" · ") : "ex VAT"}</div></div>
         <div className="tile"><div className="k">POAS</div><div className="v">{X(t.poas)}</div><div className="s">contribution ÷ ad spend</div></div>
-        <div className="tile"><div className="k">Break-even ROAS</div><div className="v">{X(be)}</div><div className="s">Meta ROAS needed to cover costs</div></div>
+        <div className="tile"><div className="k">Break-even ROAS</div><div className="v">{X(be)}</div><div className="s">platform ROAS needed to cover costs</div></div>
       </section>
 
       {r.daily.length > 1 && (
@@ -131,7 +140,7 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
               ["Courier", t.courier],
               ["Returns", t.returnsCost],
               ["Packaging & fulfilment", t.packaging],
-              ["Meta ads", t.adSpend],
+              ...r.platforms.map((p) => [`${pname(p.platform)} ads`, p.adCost] as const),
             ] as const).map(([k, v]) => (
               <tr key={k}><td>{k}</td><td className="neg">{R(-v)}</td><td>{t.netRevenue ? P(v / t.netRevenue) : "–"}</td></tr>
             ))}
@@ -169,15 +178,16 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
         </div>
       </div>
 
-      <h2>Meta campaigns vs break-even ({X(be)})</h2>
+      <h2>Campaigns vs break-even ({X(be)})</h2>
       {days < 10 && <div className="alert">Short window: judge campaigns on 10–14 days before acting.</div>}
       <div className="card">
         <table>
-          <thead><tr><th>Campaign</th><th>Spend</th><th>Meta ROAS</th><th>Status</th></tr></thead>
+          <thead><tr><th>Campaign</th><th>Platform</th><th>Spend</th><th>Platform ROAS</th><th>Status</th></tr></thead>
           <tbody>
             {r.campaigns.filter((c) => c.spend > 0).map((c) => (
               <tr key={c.id}>
                 <td>{c.name}</td>
+                <td>{pname(c.platform)}</td>
                 <td>{R(c.spend)}</td>
                 <td>{X(c.roas)}</td>
                 <td>{be == null || c.roas == null ? "–" : c.roas >= be
@@ -190,8 +200,8 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
       </div>
 
       <p className="foot">
-        Last sync: {(last.data ?? []).map((s) => `${s.kind} ${s.status} ${s.finished_at ? new Date(s.finished_at).toLocaleString("en-ZA", { timeZone: shop.timezone }) : "running"}`).join(" · ") || "never"}.
-        Meta ROAS uses Meta&apos;s own attribution; profit uses Shopify orders.
+        Last sync: {[...latest.values()].map((s) => `${pname(s.kind)} ${s.status} ${s.finished_at ? new Date(s.finished_at).toLocaleString("en-ZA", { timeZone: shop.timezone }) : "running"}`).join(" · ") || "never"}.
+        Platform ROAS uses each platform&apos;s own attribution (platforms can both claim the same sale); profit uses Shopify orders.
       </p>
     </main>
   );
