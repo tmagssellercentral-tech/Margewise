@@ -20,6 +20,34 @@ export interface ShopConfig {
   courierReturnStandard: number;
   courierReturnBulky: number;
   adSpendIncludesVat: boolean;
+  /**
+   * "rate": strip VAT at vatRate (the original South African model, matches the answer key).
+   * "shopify": strip the tax Shopify actually recorded on each order. Works for VAT-inclusive
+   * prices (UK, EU, AU, ZA) and for sales tax added at checkout (US, CA).
+   */
+  taxMode?: "rate" | "shopify";
+  /** ISO country of the store, used to tell domestic from international shipments. */
+  country?: string;
+  courierRules?: CourierRule[];
+}
+
+export interface CourierRule {
+  zone: string; // ISO country code, "domestic" or "international"
+  parcelSize: string; // "standard" | "bulky"
+  cost: number;
+  returnCost: number;
+}
+
+export type FixedCostFrequency = "daily" | "weekly" | "monthly" | "yearly" | "once";
+
+export interface FixedCost {
+  name: string;
+  category: string;
+  amount: number;
+  frequency: FixedCostFrequency;
+  startDate: string; // YYYY-MM-DD
+  endDate: string | null;
+  vatClaimable: boolean;
 }
 
 export interface FeeRule {
@@ -45,6 +73,15 @@ export interface OrderInput {
   refundIncl: number;
   returnStatus: ReturnStatus;
   lines: OrderLineInput[];
+  /** Total tax Shopify recorded on the order (used when taxMode is "shopify"). */
+  taxAmount?: number;
+  /** True when line and shipping prices already include tax. */
+  taxesIncluded?: boolean;
+  shipCountry?: string | null;
+  /** Fee the gateway actually charged (e.g. Shopify Payments), replacing the rate rule. */
+  actualPaymentFee?: number | null;
+  /** Courier cost from an imported invoice, replacing the zone rule. */
+  actualCourier?: number | null;
 }
 
 export interface LineResult {
@@ -90,6 +127,8 @@ export interface Totals {
   contribution: number;
   adSpend: number;
   profitAfterAds: number;
+  fixedCosts: number;
+  netProfit: number;
   poas: number | null;
   breakEvenRoas: number | null;
   missingCostSkus: string[];
@@ -117,6 +156,22 @@ export function findFeeRule(gateway: string | null, rules: FeeRule[]): FeeRule |
   return hits[0] ?? null;
 }
 
+/** Courier and return cost for an order's destination and parcel size. Exact country beats zone. */
+export function courierFor(c: ShopConfig, shipCountry: string | null | undefined, bulky: boolean) {
+  const size = bulky ? "bulky" : "standard";
+  const fallback = {
+    cost: bulky ? c.courierBulky : c.courierStandard,
+    returnCost: bulky ? c.courierReturnBulky : c.courierReturnStandard,
+  };
+  const rules = c.courierRules ?? [];
+  if (rules.length === 0) return fallback;
+  const country = shipCountry?.toUpperCase() ?? null;
+  const domestic = !country || !c.country || country === c.country.toUpperCase();
+  const pick = (zone: string) => rules.find((r) => r.zone.toUpperCase() === zone.toUpperCase() && r.parcelSize === size);
+  const hit = (country && pick(country)) || pick(domestic ? "domestic" : "international");
+  return hit ? { cost: hit.cost, returnCost: hit.returnCost } : fallback;
+}
+
 export function computeOrder(
   o: OrderInput,
   c: ShopConfig,
@@ -125,19 +180,26 @@ export function computeOrder(
 ): OrderResult {
   const mult = costMultiplier(c);
   const div = revenueDivisor(c);
+  const shopifyTax = c.taxMode === "shopify";
   const linesTotal = o.lines.reduce((s, l) => s + l.lineTotalIncl, 0);
-  const totalIncl = linesTotal + o.shippingIncl;
+  const goods = linesTotal + o.shippingIncl;
+  const tax = shopifyTax ? o.taxAmount ?? 0 : 0;
+  // What the customer paid. Sales tax added at checkout sits on top of line prices.
+  const totalIncl = shopifyTax && o.taxesIncluded === false ? goods + tax : goods;
+  const taxShare = shopifyTax && totalIncl > 0 ? tax / totalIncl : 0;
   const bulky = o.lines.some((l) => l.sku != null && bulkySkus.has(l.sku));
 
   const rule = findFeeRule(o.gateway, rules);
-  const paymentFee = rule
-    ? Math.max(rule.pct * totalIncl + rule.fixedFee, rule.minFee) * mult
-    : 0;
-  const courier = (bulky ? c.courierBulky : c.courierStandard) * mult;
+  const paymentFee =
+    o.actualPaymentFee != null
+      ? o.actualPaymentFee * mult
+      : rule
+        ? Math.max(rule.pct * totalIncl + rule.fixedFee, rule.minFee) * mult
+        : 0;
+  const zone = courierFor(c, o.shipCountry, bulky);
+  const courier = (o.actualCourier != null ? o.actualCourier : zone.cost) * mult;
   const returnsCost =
-    o.returnStatus === "none"
-      ? 0
-      : ((bulky ? c.courierReturnBulky : c.courierReturnStandard) + c.returnHandlingPerOrder) * mult;
+    o.returnStatus === "none" ? 0 : (zone.returnCost + c.returnHandlingPerOrder) * mult;
   const packaging = (c.packagingPerOrder + c.fulfilmentPerOrder) * mult;
   const stockComesBack =
     o.returnStatus === "returned_restocked" || o.returnStatus === "failed_delivery";
@@ -147,8 +209,10 @@ export function computeOrder(
     // Shipping and refunds sit on the first line, exactly as in the spreadsheet.
     const ship = i === 0 ? o.shippingIncl : 0;
     const refund = i === 0 ? o.refundIncl : 0;
-    const share = totalIncl === 0 ? 0 : (l.lineTotalIncl + ship) / totalIncl;
-    const netRevenue = (l.lineTotalIncl + ship - refund) / div;
+    const share = goods === 0 ? 0 : (l.lineTotalIncl + ship) / goods;
+    const netRevenue = shopifyTax
+      ? (share * totalIncl - refund) * (1 - taxShare)
+      : (l.lineTotalIncl + ship - refund) / div;
     if (l.unitCost == null && l.sku) missing.push(l.sku);
     const cogs = stockComesBack ? 0 : l.quantity * (l.unitCost ?? 0);
     const lp = paymentFee * share;
@@ -184,7 +248,7 @@ export function computeOrder(
     packaging: sum("packaging"),
     contribution: sum("contribution"),
     missingCostSkus: missing,
-    unmatchedGateway: o.gateway && !rule ? o.gateway : null,
+    unmatchedGateway: o.gateway && !rule && o.actualPaymentFee == null ? o.gateway : null,
     lines,
   };
 }
@@ -195,7 +259,28 @@ export function adCost(spend: number, c: ShopConfig): number {
   return exVat * (c.adSpendIncludesVat ? 1 : costMultiplier(c));
 }
 
-export function totals(results: OrderResult[], adSpendRaw: number, c: ShopConfig): Totals {
+const daysInMonth = (ymd: string) => new Date(Date.UTC(+ymd.slice(0, 4), +ymd.slice(5, 7), 0)).getUTCDate();
+const daysInYear = (ymd: string) => (new Date(Date.UTC(+ymd.slice(0, 4), 1, 29)).getUTCDate() === 29 ? 366 : 365);
+
+/** One fixed cost's share for a single day, after reclaimable VAT. */
+export function fixedCostForDay(f: FixedCost, ymd: string, c: ShopConfig): number {
+  if (ymd < f.startDate || (f.endDate && ymd > f.endDate)) return 0;
+  let v: number;
+  switch (f.frequency) {
+    case "daily": v = f.amount; break;
+    case "weekly": v = f.amount / 7; break;
+    case "monthly": v = f.amount / daysInMonth(ymd); break;
+    case "yearly": v = f.amount / daysInYear(ymd); break;
+    case "once": v = ymd === f.startDate ? f.amount : 0; break;
+  }
+  return f.vatClaimable && c.vatRegistered ? v / (1 + c.vatRate) : v;
+}
+
+export function fixedCostsForDay(costs: FixedCost[], ymd: string, c: ShopConfig): number {
+  return costs.reduce((s, f) => s + fixedCostForDay(f, ymd, c), 0);
+}
+
+export function totals(results: OrderResult[], adSpendRaw: number, c: ShopConfig, fixed = 0): Totals {
   const s = (f: (r: OrderResult) => number) => results.reduce((a, r) => a + f(r), 0);
   const revenueIncl = s((r) => r.totalIncl);
   const contribution = s((r) => r.contribution);
@@ -212,6 +297,8 @@ export function totals(results: OrderResult[], adSpendRaw: number, c: ShopConfig
     contribution: round2(contribution),
     adSpend: round2(ad),
     profitAfterAds: round2(contribution - ad),
+    fixedCosts: round2(fixed),
+    netProfit: round2(contribution - ad - fixed),
     poas: ad > 0 ? contribution / ad : null,
     // The Meta-reported ROAS needed just to cover variable costs.
     breakEvenRoas:

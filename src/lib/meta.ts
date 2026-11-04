@@ -9,6 +9,8 @@ export interface CampaignDay {
   campaignName: string;
   spend: number;
   purchaseValue: number;
+  /** Currency the ad account bills in; converted to the store's currency at sync. */
+  currency?: string;
 }
 
 interface InsightRow {
@@ -36,6 +38,13 @@ export async function fetchCampaignDays(from: string, to: string): Promise<Campa
 
   const out: CampaignDay[] = [];
   for (const acct of accounts) {
+    const info = await fetch(`https://graph.facebook.com/${API_VERSION}/act_${acct}?fields=currency`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    const infoBody = await info.json();
+    if (!info.ok) throw new Error(`Meta ${info.status}: ${JSON.stringify(infoBody.error ?? infoBody).slice(0, 500)}`);
+    const currency: string | undefined = infoBody.currency;
     const params = new URLSearchParams({
       level: "campaign",
       fields: "campaign_id,campaign_name,spend,action_values",
@@ -59,6 +68,7 @@ export async function fetchCampaignDays(from: string, to: string): Promise<Campa
           campaignName: row.campaign_name,
           spend: Number(row.spend ?? 0),
           purchaseValue: purchaseValue(row),
+          currency,
         });
       }
       url = body.paging?.next ?? null;

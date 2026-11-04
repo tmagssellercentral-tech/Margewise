@@ -78,9 +78,9 @@ interface GaqlRow {
 /**
  * Campaign spend by day for every account in GOOGLE_ADS_CUSTOMER_IDS (comma-separated, hyphens fine).
  * Set GOOGLE_ADS_LOGIN_CUSTOMER_ID only when access is through a manager (MCC) account.
- * Throws if an account's currency differs from the store's, until currency conversion is added.
+ * Each row carries the account's currency; sync converts it to the store's currency.
  */
-export async function fetchGoogleCampaignDays(from: string, to: string, storeCurrency: string): Promise<CampaignDay[]> {
+export async function fetchGoogleCampaignDays(from: string, to: string): Promise<CampaignDay[]> {
   const ids = (process.env.GOOGLE_ADS_CUSTOMER_IDS ?? "").split(",").map(digits).filter(Boolean);
   if (ids.length === 0) throw new Error("GOOGLE_ADS_CUSTOMER_IDS must be set");
   const login = digits(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID ?? "");
@@ -103,9 +103,6 @@ export async function fetchGoogleCampaignDays(from: string, to: string, storeCur
     // searchStream returns an array of batches, each with its own results.
     for (const batch of (body ?? []) as { results?: GaqlRow[] }[]) {
       for (const r of batch.results ?? []) {
-        const cur = r.customer?.currencyCode;
-        if (cur && cur !== storeCurrency)
-          throw new Error(`Google Ads account ${id} bills in ${cur} but the store sells in ${storeCurrency}; currency conversion isn't supported yet`);
         out.push({
           date: r.segments?.date ?? "",
           accountId: id,
@@ -113,6 +110,7 @@ export async function fetchGoogleCampaignDays(from: string, to: string, storeCur
           campaignName: r.campaign?.name ?? "",
           spend: Number(r.metrics?.costMicros ?? 0) / 1_000_000,
           purchaseValue: Number(r.metrics?.conversionsValue ?? 0),
+          currency: r.customer?.currencyCode,
         });
       }
     }

@@ -1,6 +1,7 @@
-import { adCost, byProduct, computeOrder, totals, type OrderInput, type OrderResult, type ReturnStatus } from "./engine";
+import { adCost, byProduct, computeOrder, fixedCostsForDay, totals, type OrderInput, type OrderResult, type ReturnStatus } from "./engine";
 import { db, getShop, loadConfig, type Shop } from "./db";
-import { fetchOrdersUpdatedSince, money, numericId } from "./shopify";
+import { actualFees, fetchOrdersUpdatedSince, money, numericId } from "./shopify";
+import { dailyRates } from "./fx";
 import { fetchCampaignDays, type CampaignDay } from "./meta";
 import { fetchGoogleCampaignDays, googleConfigured } from "./google";
 import { daysBetween, localDate } from "./dates";
@@ -39,6 +40,12 @@ export async function syncShopify(shop: Shop, sinceIso: string) {
             cancelled: o.cancelledAt != null,
             shipping_incl: money(o.totalShippingPriceSet),
             refund_incl: money(o.totalRefundedSet),
+            currency: o.currencyCode ?? null,
+            taxes_included: o.taxesIncluded ?? null,
+            tax_amount: money(o.totalTaxSet),
+            // Only overwrite the country when Shopify returned the address field.
+            ...(o.shippingAddress !== undefined ? { ship_country: o.shippingAddress?.countryCodeV2 ?? null } : {}),
+            actual_payment_fee: actualFees(o),
             synced_at: new Date().toISOString(),
           })),
           { onConflict: "shop_id,shopify_id" },
@@ -74,7 +81,7 @@ export type AdPlatform = "meta" | "google";
 /** Store one platform's campaign spend for a window, replacing what was there. */
 export async function syncAds(shop: Shop, platform: AdPlatform, from: string, to: string, fetch: () => Promise<CampaignDay[]>) {
   return logRun(shop, platform, async () => {
-    const rows = await fetch();
+    const rows = await convertToStoreCurrency(await fetch(), shop.currency, from, to);
     // Fetch first, then replace the window, so a failed pull never wipes stored spend
     // and campaigns with zero spend on a re-run don't linger.
     const del = await db().from("ad_spend_daily").delete().eq("shop_id", shop.id).eq("platform", platform).gte("date", from).lte("date", to);
@@ -90,6 +97,9 @@ export async function syncAds(shop: Shop, platform: AdPlatform, from: string, to
           campaign_name: r.campaignName,
           spend: r.spend,
           purchase_value: r.purchaseValue,
+          currency: r.originalCurrency,
+          spend_original: r.spendOriginal,
+          fx_rate: r.fxRate,
         })),
       );
       if (error) throw new Error(error.message);
@@ -98,21 +108,36 @@ export async function syncAds(shop: Shop, platform: AdPlatform, from: string, to
   });
 }
 
+type Converted = CampaignDay & { originalCurrency: string; spendOriginal: number; fxRate: number };
+
+/** Ad accounts can bill in another currency (e.g. USD); convert spend and value at that day's rate. */
+async function convertToStoreCurrency(rows: CampaignDay[], storeCcy: string, from: string, to: string): Promise<Converted[]> {
+  const ccys = [...new Set(rows.map((r) => r.currency ?? storeCcy))].filter((c) => c !== storeCcy);
+  const rates = new Map<string, Map<string, number>>();
+  for (const c of ccys) rates.set(c, await dailyRates(c, storeCcy, from, to));
+  return rows.map((r) => {
+    const ccy = r.currency ?? storeCcy;
+    const fx = ccy === storeCcy ? 1 : rates.get(ccy)!.get(r.date);
+    if (fx == null) throw new Error(`No ${ccy}→${storeCcy} rate for ${r.date}`);
+    return { ...r, spend: r.spend * fx, purchaseValue: r.purchaseValue * fx, originalCurrency: ccy, spendOriginal: r.spend, fxRate: fx };
+  });
+}
+
 export const syncMeta = (shop: Shop, from: string, to: string) =>
   syncAds(shop, "meta", from, to, () => fetchCampaignDays(from, to));
 
 export const syncGoogle = (shop: Shop, from: string, to: string) =>
-  syncAds(shop, "google", from, to, () => fetchGoogleCampaignDays(from, to, shop.currency));
+  syncAds(shop, "google", from, to, () => fetchGoogleCampaignDays(from, to));
 
 /** Load stored orders for a date range and run them through the engine. */
 export async function computeRange(shop: Shop, from: string, to: string) {
-  const { config, rules, bulky, costOverrides } = await loadConfig(shop);
+  const { config, rules, bulky, costOverrides, fixedCosts } = await loadConfig(shop);
 
   const orders: OrderInput[] = [];
   for (let page = 0; ; page++) {
     const { data, error } = await db()
       .from("orders")
-      .select("name, local_date, gateway, shipping_incl, refund_incl, return_status, order_lines(sku, title, quantity, line_total_incl, unit_cost)")
+      .select("name, local_date, gateway, shipping_incl, refund_incl, return_status, taxes_included, tax_amount, ship_country, actual_payment_fee, actual_courier, order_lines(sku, title, quantity, line_total_incl, unit_cost)")
       .eq("shop_id", shop.id)
       .eq("cancelled", false)
       .gte("local_date", from)
@@ -128,6 +153,11 @@ export async function computeRange(shop: Shop, from: string, to: string) {
         shippingIncl: Number(o.shipping_incl),
         refundIncl: Number(o.refund_incl),
         returnStatus: o.return_status as ReturnStatus,
+        taxAmount: Number(o.tax_amount ?? 0),
+        taxesIncluded: o.taxes_included ?? undefined,
+        shipCountry: o.ship_country,
+        actualPaymentFee: o.actual_payment_fee != null ? Number(o.actual_payment_fee) : null,
+        actualCourier: o.actual_courier != null ? Number(o.actual_courier) : null,
         lines: (o.order_lines ?? []).map((l) => ({
           sku: l.sku,
           title: l.title,
@@ -162,16 +192,19 @@ export async function computeRange(shop: Shop, from: string, to: string) {
   }
   const totalSpend = [...spendByDate.values()].reduce((a, b) => a + b, 0);
 
+  const fixedByDate = new Map(daysBetween(from, to).map((d) => [d, fixedCostsForDay(fixedCosts, d, config)]));
+  const totalFixed = [...fixedByDate.values()].reduce((a, b) => a + b, 0);
   const daily = daysBetween(from, to).map((d) => ({
     date: d,
-    ...totals(results.filter((r) => r.localDate === d), spendByDate.get(d) ?? 0, config),
+    ...totals(results.filter((r) => r.localDate === d), spendByDate.get(d) ?? 0, config, fixedByDate.get(d) ?? 0),
   }));
 
   return {
     config,
     results,
     daily,
-    total: totals(results, totalSpend, config),
+    total: totals(results, totalSpend, config, totalFixed),
+    fixedCosts,
     products: byProduct(results),
     // Ad cost (after the store's VAT treatment) per platform, largest first.
     platforms: [...spendByPlatform.entries()]
@@ -204,13 +237,15 @@ export async function recompute(shop: Shop, from: string, to: string) {
         contribution: d.contribution,
         ad_spend: d.adSpend,
         profit_after_ads: d.profitAfterAds,
+        fixed_costs: d.fixedCosts,
+        net_profit: d.netProfit,
         missing_cost_skus: d.missingCostSkus,
         computed_at: new Date().toISOString(),
       })),
       { onConflict: "shop_id,date" },
     );
   if (error) throw new Error(error.message);
-  return { days: r.daily.length, profitAfterAds: r.total.profitAfterAds };
+  return { days: r.daily.length, profitAfterAds: r.total.profitAfterAds, netProfit: r.total.netProfit };
 }
 
 /** Full nightly job: Shopify and every configured ad platform for the window, then recompute. */

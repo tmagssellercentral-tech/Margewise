@@ -39,15 +39,16 @@ describe("fetchGoogleCampaignDays", () => {
 
   it("converts micros, strips hyphens and sends no developer token", async () => {
     const calls = stub("ZAR");
-    const rows = await fetchGoogleCampaignDays("2026-10-01", "2026-10-31", "ZAR");
-    expect(rows).toEqual([{ date: "2026-10-05", accountId: "1234567890", campaignId: "9", campaignName: "Search - Brand", spend: 1234.56, purchaseValue: 4500.5 }]);
+    const rows = await fetchGoogleCampaignDays("2026-10-01", "2026-10-31");
+    expect(rows).toEqual([{ date: "2026-10-05", accountId: "1234567890", campaignId: "9", campaignName: "Search - Brand", spend: 1234.56, purchaseValue: 4500.5, currency: "ZAR" }]);
     const ads = calls.find((c) => c.url.includes("googleads"))!;
     expect(ads.url).toContain("/customers/1234567890/googleAds:searchStream");
     expect(Object.keys(ads.init.headers as object)).not.toContain("developer-token");
   });
 
-  it("refuses an account billed in another currency", async () => {
+  it("reports the account's billing currency for conversion", async () => {
     stub("USD");
-    await expect(fetchGoogleCampaignDays("2026-10-01", "2026-10-31", "ZAR")).rejects.toThrow(/bills in USD/);
+    const rows = await fetchGoogleCampaignDays("2026-10-01", "2026-10-31");
+    expect(rows[0].currency).toBe("USD");
   });
 });

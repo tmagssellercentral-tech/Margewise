@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { FeeRule, ShopConfig } from "./engine";
+import type { CourierRule, FeeRule, FixedCost, FixedCostFrequency, ShopConfig } from "./engine";
 
 let client: SupabaseClient | null = null;
 
@@ -22,6 +22,8 @@ export interface Shop {
   vat_registered: boolean;
   vat_rate: number;
   prices_include_vat: boolean;
+  country: string;
+  tax_mode: "rate" | "shopify";
 }
 
 export async function getShop(domain = process.env.SHOP_DOMAIN ?? "fleximuscles.co.za"): Promise<Shop> {
@@ -35,15 +37,16 @@ export async function loadConfig(shop: Shop): Promise<{
   rules: FeeRule[];
   bulky: Set<string>;
   costOverrides: Map<string, number>;
+  fixedCosts: FixedCost[];
 }> {
-  const [s, r, p] = await Promise.all([
+  const [s, r, p, cr, fc] = await Promise.all([
     db().from("shop_settings").select("*").eq("shop_id", shop.id).single(),
     db().from("payment_fee_rules").select("*").eq("shop_id", shop.id),
     db().from("product_settings").select("*").eq("shop_id", shop.id),
+    db().from("courier_rules").select("*").eq("shop_id", shop.id),
+    db().from("fixed_costs").select("*").eq("shop_id", shop.id),
   ]);
-  if (s.error) throw new Error(s.error.message);
-  if (r.error) throw new Error(r.error.message);
-  if (p.error) throw new Error(p.error.message);
+  for (const q of [s, r, p, cr, fc]) if (q.error) throw new Error(q.error.message);
   const n = (v: unknown) => Number(v ?? 0);
   return {
     config: {
@@ -58,6 +61,11 @@ export async function loadConfig(shop: Shop): Promise<{
       courierReturnStandard: n(s.data.courier_return_standard),
       courierReturnBulky: n(s.data.courier_return_bulky),
       adSpendIncludesVat: Boolean(s.data.ad_spend_includes_vat),
+      taxMode: shop.tax_mode,
+      country: shop.country,
+      courierRules: (cr.data ?? []).map(
+        (x): CourierRule => ({ zone: x.zone, parcelSize: x.parcel_size, cost: n(x.cost), returnCost: n(x.return_cost) }),
+      ),
     },
     rules: (r.data ?? []).map((x) => ({
       gatewayMatch: x.gateway_match,
@@ -68,6 +76,17 @@ export async function loadConfig(shop: Shop): Promise<{
     bulky: new Set((p.data ?? []).filter((x) => x.parcel_size === "bulky").map((x) => x.sku)),
     costOverrides: new Map(
       (p.data ?? []).filter((x) => x.cost_override != null).map((x) => [x.sku, n(x.cost_override)]),
+    ),
+    fixedCosts: (fc.data ?? []).map(
+      (x): FixedCost => ({
+        name: x.name,
+        category: x.category,
+        amount: n(x.amount),
+        frequency: x.frequency as FixedCostFrequency,
+        startDate: x.start_date,
+        endDate: x.end_date,
+        vatClaimable: Boolean(x.vat_claimable),
+      }),
     ),
   };
 }

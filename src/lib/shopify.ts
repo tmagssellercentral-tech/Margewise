@@ -20,14 +20,26 @@ export interface ShopifyOrder {
   displayFinancialStatus: string | null;
   totalShippingPriceSet: { shopMoney: { amount: string } };
   totalRefundedSet: { shopMoney: { amount: string } };
+  currencyCode?: string;
+  taxesIncluded?: boolean;
+  totalTaxSet?: { shopMoney: { amount: string } } | null;
+  shippingAddress?: { countryCodeV2: string | null } | null;
+  transactions?: { kind: string; status: string; fees: { amount: { amount: string } }[] }[];
   lineItems: { nodes: ShopifyLine[]; pageInfo: { hasNextPage: boolean } };
 }
 
-const ORDERS_QUERY = `
+// The shipping country is part of the address, which Shopify can treat as protected customer
+// data. If the app lacks that access, the query is retried without it.
+const COUNTRY = "shippingAddress { countryCodeV2 }";
+const ordersQuery = (withCountry: boolean) => `
 query Orders($first: Int!, $after: String, $q: String!) {
   orders(first: $first, after: $after, query: $q, sortKey: UPDATED_AT) {
     nodes {
       id name createdAt cancelledAt sourceName paymentGatewayNames displayFinancialStatus
+      currencyCode taxesIncluded
+      totalTaxSet { shopMoney { amount } }
+      ${withCountry ? COUNTRY : ""}
+      transactions(first: 20) { kind status fees { amount { amount } } }
       totalShippingPriceSet { shopMoney { amount } }
       totalRefundedSet { shopMoney { amount } }
       lineItems(first: 100) {
@@ -103,9 +115,17 @@ export async function fetchOrdersUpdatedSince(sinceIso: string): Promise<Shopify
   const q = `updated_at:>='${sinceIso}' source_name:web`;
   const out: ShopifyOrder[] = [];
   let after: string | null = null;
+  let withCountry = true;
   do {
-    const data: { orders: { nodes: ShopifyOrder[]; pageInfo: { hasNextPage: boolean; endCursor: string } } } =
-      await gql(ORDERS_QUERY, { first: 50, after, q });
+    type Page = { orders: { nodes: ShopifyOrder[]; pageInfo: { hasNextPage: boolean; endCursor: string } } };
+    let data: Page;
+    try {
+      data = await gql<Page>(ordersQuery(withCountry), { first: 50, after, q });
+    } catch (e) {
+      if (!withCountry || !/shippingAddress|ACCESS_DENIED|protected customer data/i.test(String(e))) throw e;
+      withCountry = false;
+      data = await gql<Page>(ordersQuery(false), { first: 50, after, q });
+    }
     out.push(...data.orders.nodes);
     after = data.orders.pageInfo.hasNextPage ? data.orders.pageInfo.endCursor : null;
   } while (after);
@@ -114,5 +134,12 @@ export async function fetchOrdersUpdatedSince(sinceIso: string): Promise<Shopify
 
 export const money = (m: { shopMoney: { amount: string } } | null | undefined) =>
   m ? Number(m.shopMoney.amount) : 0;
+
+/** Fees the gateway reported on successful sales and captures (Shopify Payments reports these). */
+export function actualFees(o: ShopifyOrder): number | null {
+  const ok = (o.transactions ?? []).filter((t) => (t.kind === "SALE" || t.kind === "CAPTURE") && t.status === "SUCCESS");
+  const fees = ok.flatMap((t) => t.fees ?? []);
+  return fees.length ? fees.reduce((s, f) => s + Number(f.amount.amount), 0) : null;
+}
 
 export const numericId = (gid: string) => Number(gid.split("/").pop());
