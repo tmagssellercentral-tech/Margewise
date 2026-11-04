@@ -3,9 +3,10 @@ import { addDays, localDate } from "@/lib/dates";
 import { findFeeRule } from "@/lib/engine";
 import { AppNav, Flash } from "../nav";
 import {
-  deleteCourierRule, deleteFeeRule, deleteFixedCost, saveCourierRule, saveFeeRule, saveFixedCost,
-  saveProduct, saveShipping, saveStore,
+  addManualSpend, deleteCourierRule, deleteFeeRule, deleteFixedCost, deleteUploadedSpend, importCourierCsv,
+  importSpendCsv, saveCourierRule, saveFeeRule, saveFixedCost, saveProduct, saveShipping, saveStore,
 } from "./actions";
+import { PLATFORMS, isConfigured, platformName } from "@/lib/platforms";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ const TABS = [
   { key: "shipping", label: "Shipping & packaging" },
   { key: "products", label: "Products" },
   { key: "fixed", label: "Fixed costs" },
+  { key: "ads", label: "Ad platforms" },
 ];
 
 type SP = Promise<Record<string, string | undefined>>;
@@ -38,6 +40,7 @@ export default async function Settings({ searchParams }: { searchParams: SP }) {
       {tab === "shipping" && <ShippingTab />}
       {tab === "products" && <ProductsTab q={sp.q} />}
       {tab === "fixed" && <FixedTab />}
+      {tab === "ads" && <AdsTab />}
     </main>
   );
 }
@@ -220,6 +223,16 @@ async function ShippingTab() {
               </div>
       </div>
       </div>
+
+      <form action={importCourierCsv} className="card form">
+        <h2>Upload a courier invoice (actual cost per order)</h2>
+        <p className="hint">
+          This works with any courier. Export your invoice or statement as a CSV with an <b>order number</b> column (order, reference or order_number)
+          and a <b>cost</b> column (cost, amount or total). Margewise matches each line to the Shopify order and uses that cost instead of the rates above.
+          If an order has several lines, for example two parcels, they&apos;re added together. Amounts are ex VAT, in {shop.currency}.
+        </p>
+        <div className="rowform upload"><input type="file" name="file" accept=".csv,text/csv" required /><button type="submit">Upload invoice</button></div>
+      </form>
     </>
   );
 }
@@ -316,5 +329,98 @@ async function FixedTab() {
           <div>{costRow()}</div>
       </div>
     </div>
+  );
+}
+
+async function AdsTab() {
+  const shop = await getShop();
+  const today = localDate(new Date(), shop.timezone);
+  const [{ data: runs }, { data: uploaded }] = await Promise.all([
+    db().from("sync_runs").select("kind, status, finished_at, detail").eq("shop_id", shop.id).order("started_at", { ascending: false }).limit(60),
+    db().from("ad_spend_daily").select("platform, date, spend").eq("shop_id", shop.id).eq("account_id", "csv").gte("date", addDays(today, -400)).limit(20000),
+  ]);
+  const lastRun = new Map<string, { status: string; finished_at: string | null; detail: string | null }>();
+  for (const r of runs ?? []) if (!lastRun.has(r.kind)) lastRun.set(r.kind, r);
+  const months = new Map<string, { platform: string; month: string; spend: number; days: Set<string> }>();
+  for (const u of uploaded ?? []) {
+    const k = `${u.platform}|${u.date.slice(0, 7)}`;
+    const m = months.get(k) ?? { platform: u.platform, month: u.date.slice(0, 7), spend: 0, days: new Set<string>() };
+    m.spend += Number(u.spend);
+    m.days.add(u.date);
+    months.set(k, m);
+  }
+  return (
+    <>
+      <div className="card">
+        <h2>Ad platforms</h2>
+        <p className="hint">Connected platforms sync every night at 05:00 SAST and re-check the last 3 days. Spend billed in another currency is converted at that day&apos;s European Central Bank rate.</p>
+        <table>
+          <thead><tr><th>Platform</th><th>How</th><th>Status</th><th>Last sync</th></tr></thead>
+          <tbody>
+            {PLATFORMS.map((p) => {
+              const run = lastRun.get(p.key);
+              const on = p.kind === "connector" && isConfigured(p);
+              return (
+                <tr key={p.key}>
+                  <td>{p.name}</td>
+                  <td>{p.kind === "connector" ? "Automatic" : "CSV or manual"}</td>
+                  <td>{p.kind === "upload" ? <span className="hint">{p.note}</span>
+                    : on ? (run?.status === "error" ? <span className="badge bad">Error</span> : <span className="badge ok">Connected</span>)
+                    : <span className="badge">Not connected</span>}</td>
+                  <td>{p.kind === "connector" && run?.finished_at ? new Date(run.finished_at).toLocaleString("en-ZA", { timeZone: shop.timezone }) : "–"}
+                    {p.kind === "connector" && run?.status === "error" && <div className="hint">{run.detail?.slice(0, 160)}</div>}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <form action={importSpendCsv} className="card form">
+        <h2>Upload ad spend (CSV)</h2>
+        <p className="hint">
+          Use this for any platform without a connector, such as Microsoft, X, Reddit, Amazon or affiliates. Needed columns: <b>date</b> and <b>spend</b>. Optional: <b>platform</b>, <b>campaign</b>,
+          <b> conversion_value</b> (or revenue) and <b>currency</b>. Uploading the same day and campaign again replaces it, so re-uploading a month is safe. Don&apos;t upload spend for
+          a platform that&apos;s also connected, or it will be counted twice.
+        </p>
+        <div className="rowform upload"><input type="file" name="file" accept=".csv,text/csv" required /><button type="submit">Upload spend</button></div>
+      </form>
+
+      <form action={addManualSpend} className="card form">
+        <h2>Add spend manually</h2>
+        <div className="grid3">
+          <label>Date<input type="date" name="date" defaultValue={addDays(today, -1)} max={today} required /></label>
+          <label>Platform<input name="platform" list="platforms" placeholder="e.g. influencer" required /></label>
+          <label>Campaign / description<input name="campaign" placeholder="e.g. @fitcoach reel" /></label>
+          <label>Spend<input name="spend" type="number" step="0.01" required /></label>
+          <label>Currency<input name="currency" defaultValue={shop.currency} maxLength={3} /></label>
+          <label>Sales it brought in (optional)<input name="conversion_value" type="number" step="0.01" /></label>
+        </div>
+        <datalist id="platforms">{PLATFORMS.filter((p) => p.kind === "upload").map((p) => <option key={p.key} value={p.key} />)}</datalist>
+        <button type="submit">Add spend</button>
+      </form>
+
+      {months.size > 0 && (
+        <div className="card">
+          <h2>Uploaded and manual spend</h2>
+          <table>
+            <thead><tr><th>Platform</th><th>Month</th><th>Days</th><th>Spend ({shop.currency})</th><th></th></tr></thead>
+            <tbody>
+              {[...months.values()].sort((a, b) => b.month.localeCompare(a.month) || a.platform.localeCompare(b.platform)).map((m) => (
+                <tr key={`${m.platform}${m.month}`}>
+                  <td>{platformName(m.platform)}</td><td>{m.month}</td><td>{m.days.size}</td><td>{money(m.spend, shop.currency)}</td>
+                  <td>
+                    <form action={deleteUploadedSpend}>
+                      <input type="hidden" name="platform" value={m.platform} /><input type="hidden" name="month" value={m.month} />
+                      <button type="submit" className="ghost">Delete month</button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
   );
 }

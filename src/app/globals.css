@@ -127,3 +127,5 @@ form.search input { flex: 1; }
 .gt.orders .rowform { padding: 4px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
 a.tile.add { text-decoration: none; color: var(--brand); border-style: dashed; }
 a.tile.add .v { font-size: 16px; }
+.rowform.upload { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.badge:not(.ok):not(.bad) { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }

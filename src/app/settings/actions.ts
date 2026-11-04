@@ -6,7 +6,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db, getShop } from "@/lib/db";
-import { recompute } from "@/lib/sync";
+import { CSV_ACCOUNT, recompute } from "@/lib/sync";
+import { courierRows, spendRows, type SpendRow } from "@/lib/csv";
+import { dailyRates } from "@/lib/fx";
 import { addDays, isYmd, localDate } from "@/lib/dates";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
@@ -178,6 +180,84 @@ async function _saveOrder(f: FormData) {
   await done(["/orders", "/"]);
 }
 
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "none";
+
+/** Store uploaded or typed ad spend, converted to the store currency, merged per day and campaign. */
+async function storeSpend(rows: SpendRow[]) {
+  const shop = await getShop();
+  if (rows.length === 0) throw new Error("No valid rows. Each row needs a date and a spend amount.");
+  const dates = rows.map((r) => r.date).sort();
+  const rates = new Map<string, Map<string, number>>();
+  for (const c of new Set(rows.map((r) => r.currency ?? shop.currency)))
+    if (c !== shop.currency) rates.set(c, await dailyRates(c, shop.currency, dates[0], dates[dates.length - 1]));
+  const merged = new Map<string, Record<string, unknown>>();
+  for (const r of rows) {
+    const ccy = r.currency ?? shop.currency;
+    const fx = ccy === shop.currency ? 1 : rates.get(ccy)?.get(r.date);
+    if (fx == null) throw new Error(`No ${ccy} exchange rate for ${r.date}`);
+    const key = `${r.date}|${r.platform}|${slug(r.campaign)}`;
+    const m = merged.get(key) ?? {
+      shop_id: shop.id, date: r.date, platform: r.platform, account_id: CSV_ACCOUNT, campaign_id: slug(r.campaign),
+      campaign_name: r.campaign, spend: 0, purchase_value: 0, currency: ccy, spend_original: 0, fx_rate: fx,
+    };
+    m.spend = Number(m.spend) + r.spend * fx;
+    m.purchase_value = Number(m.purchase_value) + r.conversionValue * fx;
+    m.spend_original = Number(m.spend_original) + r.spend;
+    merged.set(key, m);
+  }
+  await must(db().from("ad_spend_daily").upsert([...merged.values()], { onConflict: "shop_id,date,platform,account_id,campaign_id" }));
+}
+
+async function _importSpendCsv(f: FormData) {
+  const file = f.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Choose a CSV file to upload");
+  const { rows, skipped } = spendRows(await file.text());
+  await storeSpend(rows);
+  await done(); // recalculate before reporting skipped lines, since the good rows are saved
+  if (skipped.length) throw new Error(`Imported ${rows.length} rows. Skipped line${skipped.length > 1 ? "s" : ""} ${skipped.slice(0, 10).join(", ")}${skipped.length > 10 ? "…" : ""}: each needs a date and a spend amount.`);
+}
+
+async function _addManualSpend(f: FormData) {
+  const date = str(f, "date");
+  if (!isYmd(date)) throw new Error("Pick a date");
+  const platform = str(f, "platform").toLowerCase().replace(/[^a-z0-9]+/g, "_") || "other";
+  await storeSpend([{ date, platform, campaign: str(f, "campaign") || "(manual)", spend: num(f, "spend"), conversionValue: num(f, "conversion_value"), currency: str(f, "currency").toUpperCase() || null }]);
+  await done();
+}
+
+async function _deleteUploadedSpend(f: FormData) {
+  const shop = await getShop();
+  const month = str(f, "month"); // YYYY-MM
+  if (!/^\d{4}-\d{2}$/.test(month)) throw new Error("Bad month");
+  const end = addDays(`${month}-01`, 40).slice(0, 8) + "01";
+  await must(db().from("ad_spend_daily").delete().eq("shop_id", shop.id).eq("account_id", CSV_ACCOUNT)
+    .eq("platform", str(f, "platform")).gte("date", `${month}-01`).lt("date", end));
+  await done();
+}
+
+async function _importCourierCsv(f: FormData) {
+  const shop = await getShop();
+  const file = f.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Choose a CSV file to upload");
+  const { rows, skipped } = courierRows(await file.text());
+  if (rows.length === 0) throw new Error("No valid rows. Each row needs an order number and a cost.");
+  // Several invoice lines for one order (e.g. two parcels) add up.
+  const byOrder = new Map<string, number>();
+  for (const r of rows) byOrder.set(r.order, (byOrder.get(r.order) ?? 0) + r.cost);
+  const names = [...byOrder.keys()].flatMap((o) => [o, `#${o}`]);
+  const { data: found } = await must(db().from("orders").select("id, name").eq("shop_id", shop.id).in("name", names));
+  const matched = new Set<string>();
+  for (const o of (found ?? []) as { id: string; name: string }[]) {
+    const key = o.name.replace(/^#/, "");
+    await must(db().from("orders").update({ actual_courier: byOrder.get(key) }).eq("id", o.id));
+    matched.add(key);
+  }
+  await done();
+  const unmatched = [...byOrder.keys()].filter((k) => !matched.has(k));
+  if (unmatched.length || skipped.length)
+    throw new Error(`Updated ${matched.size} orders.${unmatched.length ? ` No order found for ${unmatched.slice(0, 10).join(", ")}${unmatched.length > 10 ? "…" : ""}.` : ""}${skipped.length ? ` Skipped line${skipped.length > 1 ? "s" : ""} ${skipped.slice(0, 10).join(", ")}.` : ""}`);
+}
+
 /** Runs a write, then returns to where the form was, with a saved or error message. */
 async function run(f: FormData, fn: (f: FormData) => Promise<void>, tab: string | null) {
   let error: string | null = null;
@@ -230,4 +310,20 @@ export async function deleteFixedCost(f: FormData) {
 
 export async function saveOrder(f: FormData) {
   await run(f, _saveOrder, null);
+}
+
+export async function importSpendCsv(f: FormData) {
+  await run(f, _importSpendCsv, "ads");
+}
+
+export async function addManualSpend(f: FormData) {
+  await run(f, _addManualSpend, "ads");
+}
+
+export async function deleteUploadedSpend(f: FormData) {
+  await run(f, _deleteUploadedSpend, "ads");
+}
+
+export async function importCourierCsv(f: FormData) {
+  await run(f, _importCourierCsv, "shipping");
 }

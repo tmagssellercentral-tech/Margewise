@@ -76,6 +76,8 @@ export async function syncShopify(shop: Shop, sinceIso: string) {
   });
 }
 
+export const CSV_ACCOUNT = "csv";
+
 export type AdPlatform = "meta" | "google";
 
 /** Store one platform's campaign spend for a window, replacing what was there. */
@@ -84,7 +86,9 @@ export async function syncAds(shop: Shop, platform: AdPlatform, from: string, to
     const rows = await convertToStoreCurrency(await fetch(), shop.currency, from, to);
     // Fetch first, then replace the window, so a failed pull never wipes stored spend
     // and campaigns with zero spend on a re-run don't linger.
-    const del = await db().from("ad_spend_daily").delete().eq("shop_id", shop.id).eq("platform", platform).gte("date", from).lte("date", to);
+    // Uploaded rows (account "csv") are the merchant's; a connector sync never removes them.
+    const del = await db().from("ad_spend_daily").delete().eq("shop_id", shop.id).eq("platform", platform)
+      .neq("account_id", CSV_ACCOUNT).gte("date", from).lte("date", to);
     if (del.error) throw new Error(del.error.message);
     if (rows.length) {
       const { error } = await db().from("ad_spend_daily").insert(

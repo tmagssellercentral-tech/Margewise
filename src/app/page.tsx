@@ -14,7 +14,7 @@ const R = (n: number, dp = 0) =>
 const X = (n: number | null) => (n == null ? "–" : `${n.toFixed(2)}x`);
 const P = (n: number) => `${(n * 100).toFixed(1)}%`;
 const sign = (n: number) => (n < 0 ? "neg" : "pos");
-const PLATFORM: Record<string, string> = { shopify: "Shopify", meta: "Meta", google: "Google", tiktok: "TikTok", pinterest: "Pinterest", snapchat: "Snapchat", microsoft: "Microsoft", manual: "Other" };
+const PLATFORM: Record<string, string> = { shopify: "Shopify", meta: "Meta", google: "Google", tiktok: "TikTok", pinterest: "Pinterest", snapchat: "Snapchat", microsoft: "Microsoft", x: "X", influencer: "Influencers", manual: "Other" };
 const pname = (p: string) => PLATFORM[p] ?? p;
 
 function ProfitChart({ days }: { days: { date: string; profitAfterAds: number }[] }) {
