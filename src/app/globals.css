@@ -113,7 +113,7 @@ form.search input { flex: 1; }
 .gt .gh, .gt .rowform { display: grid; gap: 8px; align-items: center; min-width: 760px; }
 .gt .gh { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
 .gt .gh span:last-child { grid-column: span 2; }
-.gt.fees .gh, .gt.fees .rowform { grid-template-columns: 2fr 1fr 1fr 1fr 2fr auto auto; }
+.gt.fees .gh, .gt.fees .rowform { grid-template-columns: 2fr 1fr 1fr 1fr 1fr 2fr auto auto; min-width: 880px; }
 .gt.courier .gh, .gt.courier .rowform { grid-template-columns: 1.6fr 1fr 1fr 1fr 1.6fr auto auto; }
 .gt.products .gh, .gt.products .rowform { grid-template-columns: 3fr 0.6fr 1.2fr 1fr 1fr auto; }
 .gt.products .gh span:last-child { grid-column: auto; }

@@ -62,6 +62,7 @@ export async function loadConfig(shop: Shop): Promise<{
       courierReturnBulky: n(s.data.courier_return_bulky),
       adSpendIncludesVat: Boolean(s.data.ad_spend_includes_vat),
       taxMode: shop.tax_mode,
+      shopifyTxnFeePct: n(s.data.shopify_txn_fee_pct),
       country: shop.country,
       courierRules: (cr.data ?? []).map(
         (x): CourierRule => ({ zone: x.zone, parcelSize: x.parcel_size, cost: n(x.cost), returnCost: n(x.return_cost) }),
@@ -72,6 +73,7 @@ export async function loadConfig(shop: Shop): Promise<{
       pct: n(x.pct),
       fixedFee: n(x.fixed_fee),
       minFee: n(x.min_fee),
+      maxFee: x.max_fee != null ? n(x.max_fee) : null,
     })),
     bulky: new Set((p.data ?? []).filter((x) => x.parcel_size === "bulky").map((x) => x.sku)),
     costOverrides: new Map(

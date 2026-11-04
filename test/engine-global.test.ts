@@ -100,3 +100,17 @@ describe("fixed costs", () => {
     expect(t.netProfit).toBeCloseTo(t.profitAfterAds - 30, 2);
   });
 });
+
+describe("fee caps and Shopify's transaction fee", () => {
+  it("caps a percentage fee (e.g. Paystack's ₦2,000 cap)", () => {
+    const rules: FeeRule[] = [{ gatewayMatch: "Paystack", pct: 0.015, fixedFee: 100, minFee: 0, maxFee: 2000 }];
+    const big = computeOrder(order({ gateway: "Paystack", lines: [{ sku: "A", quantity: 1, lineTotalIncl: 500000, unitCost: 1 }] }), { ...base, taxMode: "rate", vatRegistered: true }, rules, new Set());
+    expect(big.paymentFee).toBeCloseTo(2000, 6);
+  });
+  it("adds Shopify's fee on third-party gateways only", () => {
+    const c: ShopConfig = { ...base, shopifyTxnFeePct: 0.02 };
+    expect(computeOrder(order({ gateway: "PayFast" }), c, noFees, new Set()).paymentFee).toBeCloseTo(2.4, 6);
+    expect(computeOrder(order({ gateway: "shopify_payments", actualPaymentFee: 3 }), c, noFees, new Set()).paymentFee).toBeCloseTo(3, 6);
+    expect(computeOrder(order({ gateway: "Bank Deposit" }), c, noFees, new Set()).paymentFee).toBe(0);
+  });
+});

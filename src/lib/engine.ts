@@ -29,6 +29,11 @@ export interface ShopConfig {
   /** ISO country of the store, used to tell domestic from international shipments. */
   country?: string;
   courierRules?: CourierRule[];
+  /**
+   * Shopify's third-party transaction fee (e.g. 0.02 on Basic) on orders not paid through
+   * Shopify Payments or a manual method. Shopify bills it in total, not per order.
+   */
+  shopifyTxnFeePct?: number;
 }
 
 export interface CourierRule {
@@ -55,6 +60,7 @@ export interface FeeRule {
   pct: number;
   fixedFee: number;
   minFee: number;
+  maxFee?: number | null;
 }
 
 export interface OrderLineInput {
@@ -172,6 +178,12 @@ export function courierFor(c: ShopConfig, shipCountry: string | null | undefined
   return hit ? { cost: hit.cost, returnCost: hit.returnCost } : fallback;
 }
 
+/** Shopify Payments (incl. Shop Pay) and manual methods carry no Shopify transaction fee. */
+export function txnFeeExempt(gateway: string | null): boolean {
+  if (!gateway) return true;
+  return /shopify[_ ]payments|shop pay|manual|bank deposit|cash|cod|gift[_ ]card|bogus/i.test(gateway);
+}
+
 export function computeOrder(
   o: OrderInput,
   c: ShopConfig,
@@ -194,8 +206,9 @@ export function computeOrder(
     o.actualPaymentFee != null
       ? o.actualPaymentFee * mult
       : rule
-        ? Math.max(rule.pct * totalIncl + rule.fixedFee, rule.minFee) * mult
+        ? Math.min(Math.max(rule.pct * totalIncl + rule.fixedFee, rule.minFee), rule.maxFee ?? Infinity) * mult
         : 0;
+  const txnFee = c.shopifyTxnFeePct && !txnFeeExempt(o.gateway) ? c.shopifyTxnFeePct * totalIncl * mult : 0;
   const zone = courierFor(c, o.shipCountry, bulky);
   const courier = (o.actualCourier != null ? o.actualCourier : zone.cost) * mult;
   const returnsCost =
@@ -215,7 +228,7 @@ export function computeOrder(
       : (l.lineTotalIncl + ship - refund) / div;
     if (l.unitCost == null && l.sku) missing.push(l.sku);
     const cogs = stockComesBack ? 0 : l.quantity * (l.unitCost ?? 0);
-    const lp = paymentFee * share;
+    const lp = (paymentFee + txnFee) * share;
     const lc = courier * share;
     const lr = returnsCost * share;
     const lk = packaging * share;

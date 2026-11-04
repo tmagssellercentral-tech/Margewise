@@ -9,6 +9,7 @@ import { db, getShop } from "@/lib/db";
 import { CSV_ACCOUNT, recompute } from "@/lib/sync";
 import { courierRows, spendRows, type SpendRow } from "@/lib/csv";
 import { dailyRates } from "@/lib/fx";
+import { FEE_PRESETS } from "@/lib/fee-presets";
 import { addDays, isYmd, localDate } from "@/lib/dates";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
@@ -66,12 +67,37 @@ async function _saveFeeRule(f: FormData) {
     pct: num(f, "pct") / 100,
     fixed_fee: num(f, "fixed_fee"),
     min_fee: num(f, "min_fee"),
+    max_fee: optNum(f, "max_fee"),
     note: str(f, "note") || null,
   };
   if (!row.gateway_match) throw new Error("Enter the payment method name as it appears on Shopify orders");
   const id = str(f, "id");
   if (id) await must(db().from("payment_fee_rules").update(row).eq("id", id).eq("shop_id", shop.id));
   else await must(db().from("payment_fee_rules").insert(row));
+  await done();
+}
+
+async function _applyFeePreset(f: FormData) {
+  const shop = await getShop();
+  const pack = FEE_PRESETS.find((p) => p.key === str(f, "preset"));
+  if (!pack) throw new Error("Pick a region");
+  const { data: existing } = await must(db().from("payment_fee_rules").select("gateway_match").eq("shop_id", shop.id));
+  const have = new Set(((existing ?? []) as { gateway_match: string }[]).map((r) => r.gateway_match.toLowerCase()));
+  const add = pack.rules.filter((r) => !have.has(r.gatewayMatch.toLowerCase()));
+  if (pack.currency !== shop.currency && add.some((r) => r.fixedFee || r.minFee || r.maxFee))
+    throw new Error(`The ${pack.name} fixed fees are in ${pack.currency}, but your store sells in ${shop.currency}. Add these rules by hand in ${shop.currency} instead.`);
+  if (add.length)
+    await must(db().from("payment_fee_rules").insert(add.map((r) => ({
+      shop_id: shop.id, gateway_match: r.gatewayMatch, pct: r.pct, fixed_fee: r.fixedFee, min_fee: r.minFee ?? 0, max_fee: r.maxFee ?? null, note: r.note,
+    }))));
+  await done();
+}
+
+async function _saveTxnFee(f: FormData) {
+  const shop = await getShop();
+  const pct = num(f, "shopify_txn_fee_pct");
+  if (pct < 0 || pct > 5) throw new Error("Shopify's transaction fee is between 0% and 2%");
+  await must(db().from("shop_settings").update({ shopify_txn_fee_pct: pct / 100, updated_at: new Date().toISOString() }).eq("shop_id", shop.id));
   await done();
 }
 
@@ -326,4 +352,12 @@ export async function deleteUploadedSpend(f: FormData) {
 
 export async function importCourierCsv(f: FormData) {
   await run(f, _importCourierCsv, "shipping");
+}
+
+export async function applyFeePreset(f: FormData) {
+  await run(f, _applyFeePreset, "fees");
+}
+
+export async function saveTxnFee(f: FormData) {
+  await run(f, _saveTxnFee, "fees");
 }

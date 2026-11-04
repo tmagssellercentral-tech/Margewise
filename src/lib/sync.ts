@@ -4,6 +4,9 @@ import { actualFees, fetchOrdersUpdatedSince, money, numericId } from "./shopify
 import { dailyRates } from "./fx";
 import { fetchCampaignDays, type CampaignDay } from "./meta";
 import { fetchGoogleCampaignDays, googleConfigured } from "./google";
+import { fetchTikTokCampaignDays, tiktokConfigured } from "./tiktok";
+import { fetchPinterestCampaignDays, pinterestConfigured } from "./pinterest";
+import { fetchSnapchatCampaignDays, snapchatConfigured } from "./snapchat";
 import { daysBetween, localDate } from "./dates";
 
 async function logRun<T>(shop: Shop, kind: string, fn: () => Promise<T>): Promise<T> {
@@ -78,7 +81,7 @@ export async function syncShopify(shop: Shop, sinceIso: string) {
 
 export const CSV_ACCOUNT = "csv";
 
-export type AdPlatform = "meta" | "google";
+export type AdPlatform = "meta" | "google" | "tiktok" | "pinterest" | "snapchat";
 
 /** Store one platform's campaign spend for a window, replacing what was there. */
 export async function syncAds(shop: Shop, platform: AdPlatform, from: string, to: string, fetch: () => Promise<CampaignDay[]>) {
@@ -260,9 +263,16 @@ export async function runSync(from: string, to: string) {
   const errors: string[] = [];
   try { out.shopify = await syncShopify(shop, sinceIso); } catch (e) { errors.push(`shopify: ${e}`); }
   try { out.meta = await syncMeta(shop, from, to); } catch (e) { errors.push(`meta: ${e}`); }
-  if (googleConfigured()) {
-    try { out.google = await syncGoogle(shop, from, to); } catch (e) { errors.push(`google: ${e}`); }
-  } else out.google = "not connected";
+  const optional: [AdPlatform, () => boolean, () => Promise<CampaignDay[]>][] = [
+    ["google", googleConfigured, () => fetchGoogleCampaignDays(from, to)],
+    ["tiktok", tiktokConfigured, () => fetchTikTokCampaignDays(from, to)],
+    ["pinterest", pinterestConfigured, () => fetchPinterestCampaignDays(shop, from, to)],
+    ["snapchat", snapchatConfigured, () => fetchSnapchatCampaignDays(shop, from, to)],
+  ];
+  for (const [platform, configured, pull] of optional) {
+    if (!configured()) { out[platform] = "not connected"; continue; }
+    try { out[platform] = await syncAds(shop, platform, from, to, pull); } catch (e) { errors.push(`${platform}: ${e}`); }
+  }
   out.recompute = await recompute(shop, from, to);
   return { ...out, errors };
 }

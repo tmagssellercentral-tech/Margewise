@@ -3,10 +3,11 @@ import { addDays, localDate } from "@/lib/dates";
 import { findFeeRule } from "@/lib/engine";
 import { AppNav, Flash } from "../nav";
 import {
-  addManualSpend, deleteCourierRule, deleteFeeRule, deleteFixedCost, deleteUploadedSpend, importCourierCsv,
+  addManualSpend, applyFeePreset, saveTxnFee, deleteCourierRule, deleteFeeRule, deleteFixedCost, deleteUploadedSpend, importCourierCsv,
   importSpendCsv, saveCourierRule, saveFeeRule, saveFixedCost, saveProduct, saveShipping, saveStore,
 } from "./actions";
 import { PLATFORMS, isConfigured, platformName } from "@/lib/platforms";
+import { FEE_PRESETS } from "@/lib/fee-presets";
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +97,7 @@ async function StoreTab() {
 
 async function FeesTab() {
   const shop = await getShop();
-  const { rules } = await loadConfig(shop);
+  const { rules, config } = await loadConfig(shop);
   const { data } = await db().from("payment_fee_rules").select("*").eq("shop_id", shop.id).order("gateway_match");
   const today = localDate(new Date(), shop.timezone);
   const { data: seen } = await db().from("orders").select("gateway, actual_payment_fee").eq("shop_id", shop.id)
@@ -135,7 +136,7 @@ async function FeesTab() {
 
       <div className="card">
         <h2>Fee rules</h2>
-        <div className="gt fees"><div className="gh"><span>Name starts with</span><span>% of order</span><span>Fixed fee</span><span>Minimum</span><span>Note</span><span></span></div>
+        <div className="gt fees"><div className="gh"><span>Name starts with</span><span>% of order</span><span>Fixed fee</span><span>Minimum</span><span>Maximum</span><span>Note</span><span></span></div>
             {(data ?? []).map((r) => (
               <div key={r.id}>
                   <form action={saveFeeRule} className="rowform">
@@ -144,6 +145,7 @@ async function FeesTab() {
                     <input name="pct" type="number" step="0.001" defaultValue={+(Number(r.pct) * 100).toFixed(3)} />
                     <input name="fixed_fee" type="number" step="0.01" defaultValue={Number(r.fixed_fee)} />
                     <input name="min_fee" type="number" step="0.01" defaultValue={Number(r.min_fee)} />
+                    <input name="max_fee" type="number" step="0.01" defaultValue={r.max_fee ?? ""} placeholder="none" />
                     <input name="note" defaultValue={r.note ?? ""} />
                     <button type="submit">Save</button>
                     <button type="submit" formAction={deleteFeeRule} className="ghost">Delete</button>
@@ -156,13 +158,43 @@ async function FeesTab() {
                   <input name="pct" type="number" step="0.001" placeholder="2.9" />
                   <input name="fixed_fee" type="number" step="0.01" placeholder="0.30" />
                   <input name="min_fee" type="number" step="0.01" placeholder="0" />
+                  <input name="max_fee" type="number" step="0.01" placeholder="none" />
                   <input name="note" placeholder="Where the rate comes from" />
                   <button type="submit">Add rule</button>
                 </form>
               </div>
           </div>
-        <p className="hint">Amounts are in {shop.currency}. Enter the % as a number, e.g. 2.95 for 2.95%.</p>
+        <p className="hint">Amounts are in {shop.currency}. Enter the % as a number, e.g. 2.95 for 2.95%. Leave Maximum empty when there&apos;s no cap.</p>
       </div>
+
+      <form action={applyFeePreset} className="card form">
+        <h2>Add standard rates for a region</h2>
+        <p className="hint">This adds the published rates of common gateways you don&apos;t have a rule for yet. It never changes your existing rules. Always check them against your own contract.</p>
+        <div className="rowform upload">
+          <select name="preset" defaultValue={FEE_PRESETS.find((p) => p.currency === shop.currency)?.key ?? "us"}>
+            {FEE_PRESETS.map((p) => <option key={p.key} value={p.key}>{p.name} ({p.rules.length} rates)</option>)}
+          </select>
+          <button type="submit">Add rates</button>
+        </div>
+        <ul className="hint">
+          {FEE_PRESETS.filter((p) => p.contractOnly.length).map((p) => (
+            <li key={p.key}><b>{p.name}:</b> {p.contractOnly.join(", ")} set rates per merchant, so add your contract rate by hand.</li>
+          ))}
+        </ul>
+      </form>
+
+      <form action={saveTxnFee} className="card form">
+        <h2>Shopify transaction fee</h2>
+        <p className="hint">
+          Shopify charges an extra fee on orders that aren&apos;t paid through Shopify Payments (Shop Pay included) or a manual method. In the US, Canada and EU it&apos;s
+          2% on Basic, 1% on Grow, 0.6% on Advanced and 0.2% on Plus. Shopify bills it in total, so Margewise can&apos;t read it per order. Check
+          <b> Settings → Billing → Transaction fees</b> in Shopify, and enter 0 if you don&apos;t pay it. Shopify Payments isn&apos;t available in South Africa, so check your bill to see whether it applies.
+        </p>
+        <div className="rowform upload">
+          <label>% of order total<input name="shopify_txn_fee_pct" type="number" step="0.01" min="0" max="5" defaultValue={+((config.shopifyTxnFeePct ?? 0) * 100).toFixed(2)} /></label>
+          <button type="submit">Save</button>
+        </div>
+      </form>
     </>
   );
 }
