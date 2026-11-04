@@ -1,37 +1,13 @@
 import { getShop } from "@/lib/db";
 import { computeRange } from "@/lib/sync";
-import { addDays, isYmd, localDate } from "@/lib/dates";
+import { localDate } from "@/lib/dates";
+import { PRESETS, resolveRange } from "@/lib/range";
 import { db } from "@/lib/db";
+import { AppNav } from "./nav";
 
 export const dynamic = "force-dynamic";
 
 type SP = Promise<Record<string, string | undefined>>;
-
-const PRESETS = [
-  { key: "yesterday", label: "Yesterday" },
-  { key: "7d", label: "Last 7 days" },
-  { key: "14d", label: "Last 14 days" },
-  { key: "30d", label: "Last 30 days" },
-  { key: "mtd", label: "This month" },
-  { key: "lastmonth", label: "Last month" },
-];
-
-function resolveRange(preset: string, today: string, from?: string, to?: string) {
-  if (isYmd(from ?? null) && isYmd(to ?? null) && from! <= to!) return { from: from!, to: to!, key: "custom" };
-  const y = addDays(today, -1);
-  switch (preset) {
-    case "yesterday": return { from: y, to: y, key: preset };
-    case "7d": return { from: addDays(today, -7), to: y, key: preset };
-    case "30d": return { from: addDays(today, -30), to: y, key: preset };
-    case "mtd": return { from: today.slice(0, 8) + "01", to: today, key: preset };
-    case "lastmonth": {
-      const first = today.slice(0, 8) + "01";
-      const end = addDays(first, -1);
-      return { from: end.slice(0, 8) + "01", to: end, key: preset };
-    }
-    default: return { from: addDays(today, -14), to: y, key: "14d" };
-  }
-}
 
 const R = (n: number, dp = 0) =>
   (n < 0 ? "−R " : "R ") + Math.abs(n).toLocaleString("en-ZA", { minimumFractionDigits: dp, maximumFractionDigits: dp });
@@ -85,10 +61,10 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
 
   return (
     <main className="wrap">
+      <AppNav active="dashboard" shopName={shop.name} />
       <header className="top">
         <div>
-          <div className="logo">Marge<span>wise</span></div>
-          <div className="shop">{shop.name} · website orders · {range.from} to {range.to}</div>
+          <div className="shop">Website orders · {range.from} to {range.to}</div>
         </div>
         <div className="pickers">
           <nav className="ranges">
@@ -108,7 +84,8 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
 
       <p className="verdict">
         You kept <span className={sign(t.profitAfterAds)}>{R(t.profitAfterAds)}</span> after ads
-        {t.orders > 0 ? ` from ${t.orders} orders` : ""}.
+        {t.orders > 0 ? ` from ${t.orders} orders` : ""}
+        {t.fixedCosts > 0 ? <>, and <span className={sign(t.netProfit)}>{R(t.netProfit)}</span> after fixed costs</> : ""}.
       </p>
 
       {t.missingCostSkus.length > 0 && (
@@ -123,6 +100,9 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
 
       <section className="tiles">
         <div className="tile hero"><div className="k">Profit after ads</div><div className={`v ${sign(t.profitAfterAds)}`}>{R(t.profitAfterAds)}</div><div className="s">before fixed costs</div></div>
+        {t.fixedCosts > 0
+          ? <div className="tile"><div className="k">Net profit</div><div className={`v ${sign(t.netProfit)}`}>{R(t.netProfit)}</div><div className="s">after {R(t.fixedCosts)} fixed costs</div></div>
+          : <a className="tile add" href="/settings?tab=fixed"><div className="k">Net profit</div><div className="v">+ Add fixed costs</div><div className="s">rent, salaries, software</div></a>}
         <div className="tile"><div className="k">Contribution before ads</div><div className="v">{R(t.contribution)}</div><div className="s">{t.netRevenue ? P(t.contribution / t.netRevenue) : "–"} of net revenue</div></div>
         <div className="tile"><div className="k">Net revenue</div><div className="v">{R(t.netRevenue)}</div><div className="s">ex VAT, after refunds</div></div>
         <div className="tile"><div className="k">Ad spend</div><div className="v">{R(t.adSpend)}</div><div className="s">{r.platforms.length ? r.platforms.map((p) => `${pname(p.platform)} ${R(p.adCost)}`).join(" · ") : "ex VAT"}</div></div>
@@ -154,6 +134,12 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
               <tr key={k}><td>{k}</td><td className="neg">{R(-v)}</td><td>{t.netRevenue ? P(v / t.netRevenue) : "–"}</td></tr>
             ))}
             <tr className="total"><td>Profit after ads</td><td className={sign(t.profitAfterAds)}>{R(t.profitAfterAds)}</td><td>{t.netRevenue ? P(t.profitAfterAds / t.netRevenue) : "–"}</td></tr>
+            {t.fixedCosts > 0 && (
+              <>
+                <tr><td>Fixed costs</td><td className="neg">{R(-t.fixedCosts)}</td><td>{t.netRevenue ? P(t.fixedCosts / t.netRevenue) : "–"}</td></tr>
+                <tr className="total"><td>Net profit</td><td className={sign(t.netProfit)}>{R(t.netProfit)}</td><td>{t.netRevenue ? P(t.netProfit / t.netRevenue) : "–"}</td></tr>
+              </>
+            )}
           </tbody>
         </table>
       </div>

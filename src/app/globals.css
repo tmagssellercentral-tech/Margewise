@@ -71,3 +71,59 @@ form.custom label { display: flex; align-items: center; gap: 4px; }
 form.custom input { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
 form.custom button { font: inherit; padding: 5px 14px; border: 0; border-radius: 999px; background: var(--brand); color: #fff; cursor: pointer; }
 @media (max-width: 720px) { .pickers { align-items: stretch; } form.custom { border-radius: var(--radius); } }
+
+/* App navigation */
+.appnav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.appnav .logo { text-decoration: none; color: var(--ink); }
+.appnav .shopname { color: var(--muted); font-size: 13px; }
+.appnav nav { margin-left: auto; display: flex; gap: 4px; }
+.appnav nav a { padding: 6px 12px; border-radius: 8px; text-decoration: none; color: var(--ink); font-size: 14px; }
+.appnav nav a.on { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+.pagetitle { font-size: 22px; letter-spacing: -0.02em; margin: 0 0 12px; }
+
+/* Tabs and flash messages */
+nav.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+nav.tabs a { padding: 8px 12px; text-decoration: none; color: var(--muted); font-size: 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+nav.tabs a.on { color: var(--ink); border-bottom-color: var(--brand); font-weight: 600; }
+.flash { border-radius: var(--radius); padding: 10px 14px; margin: 0 0 14px; font-size: 14px; }
+.flash.ok { background: var(--brand-soft); color: var(--pos); }
+.flash.bad { background: var(--neg-soft); color: var(--neg); }
+
+/* Forms */
+.card + .card, .card + form.card, form.card + .card { margin-top: 14px; }
+.card h2 { margin: 4px 0 10px; }
+.card.form h2:not(:first-child) { margin-top: 22px; }
+.hint { color: var(--muted); font-size: 13px; margin: 6px 0 12px; max-width: 80ch; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 16px; margin: 8px 0 16px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+label.check { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); }
+label.check.small { font-size: 12px; color: var(--muted); }
+input, select { font: inherit; font-size: 14px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; min-width: 0; }
+input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--brand); }
+input:focus, select:focus { outline: 2px solid var(--brand); outline-offset: 0; border-color: transparent; }
+button { font: inherit; font-size: 14px; padding: 7px 14px; border: 0; border-radius: 8px; background: var(--brand); color: #fff; cursor: pointer; white-space: nowrap; }
+button.ghost { background: transparent; color: var(--neg); border: 1px solid var(--line); }
+form.card > button[type="submit"] { margin-top: 4px; }
+form.search { display: flex; gap: 8px; margin-bottom: 10px; max-width: 420px; }
+form.search input { flex: 1; }
+.tiles.small { margin: 8px 0 14px; grid-template-columns: repeat(auto-fit, minmax(180px, 240px)); }
+
+/* Editable grid tables: header and each row form share column templates */
+.gt { display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
+.gt .gh, .gt .rowform { display: grid; gap: 8px; align-items: center; min-width: 760px; }
+.gt .gh { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.gt .gh span:last-child { grid-column: span 2; }
+.gt.fees .gh, .gt.fees .rowform { grid-template-columns: 2fr 1fr 1fr 1fr 2fr auto auto; }
+.gt.courier .gh, .gt.courier .rowform { grid-template-columns: 1.6fr 1fr 1fr 1fr 1.6fr auto auto; }
+.gt.products .gh, .gt.products .rowform { grid-template-columns: 3fr 0.6fr 1.2fr 1fr 1fr auto; }
+.gt.products .gh span:last-child { grid-column: auto; }
+.gt.products .rowform { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.gt.products .sku small { color: var(--muted); }
+.gt.fixed .gh, .gt.fixed .rowform { grid-template-columns: 2fr 1.3fr 1fr 1fr 1.2fr 1.2fr auto auto auto; min-width: 980px; }
+.gt.fixed .gh span:last-child { grid-column: span 3; }
+.gt.orders .gh, .gt.orders .rowform { grid-template-columns: 0.9fr 1fr 1fr 1.4fr 1.8fr 1fr 1.5fr; }
+.gt .rowend { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.gt.orders .gh span:last-child { grid-column: auto; }
+.gt.orders .rowform { padding: 4px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+a.tile.add { text-decoration: none; color: var(--brand); border-style: dashed; }
+a.tile.add .v { font-size: 16px; }
