@@ -21,6 +21,7 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
   const t = cur.total, p = prev?.total;
   const ccy = shop.currency;
   const M = (n: number, dp = 0) => fmt(ccy, n, dp);
+  const cs = ccy === "ZAR" ? "R" : `${ccy} `;
 
   const hasFixed = t.fixedCosts > 0;
   const profit = hasFixed ? t.netProfit : t.profitAfterAds;
@@ -55,19 +56,38 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
 
       <section className="kpis">
         <Kpi hero label={hasFixed ? "Net profit" : "Profit after ads"} value={M(profit)} delta={change(profit, prevProfit)}
-          sub={<>{pct(t.netRevenue ? profit / t.netRevenue : null)} margin{!hasFixed && <> · <Link href="/settings?tab=fixed">add fixed costs</Link></>}</>} />
+          sub={<>{pct(t.netRevenue ? profit / t.netRevenue : null)} margin{!hasFixed && <> · before fixed costs</>}</>} />
         <Kpi label="Net revenue" value={M(t.netRevenue)} delta={change(t.netRevenue, p?.netRevenue)} sub="ex VAT, after refunds" />
         <Kpi label="Total costs" value={M(costs)} delta={change(costs, prevCosts)} goodWhenUp={false} sub={pct(t.netRevenue ? costs / t.netRevenue : null, 0) + " of revenue"} />
         <Kpi label="Orders" value={t.orders.toLocaleString("en-ZA")} delta={change(t.orders, p?.orders)} sub={`${M(aov)} average order`} />
-        <Kpi label="Ad spend" value={M(t.adSpend)} delta={change(t.adSpend, p?.adSpend)} goodWhenUp={false} sub={`${x(mer)} blended ROAS`} />
+        <Kpi label="Ad spend" value={M(t.adSpend)} delta={change(t.adSpend, p?.adSpend)} goodWhenUp={false} sub={`${pct(t.netRevenue ? t.adSpend / t.netRevenue : null, 0)} of revenue`} />
       </section>
 
+      {!hasFixed && (
+        <div className="callout">
+          <div>
+            <b>Your net profit is missing fixed costs.</b>
+            <span>Salaries, rent, software and other overheads aren&apos;t included yet, so the headline figure is profit after ads, not what you actually keep.</span>
+          </div>
+          <Link href="/expenses" className="btn">+ Add fixed costs</Link>
+        </div>
+      )}
+
       <section className="strip">
-        <div><span>Profit per order</span><b>{M(t.orders ? profit / t.orders : 0)}</b></div>
-        <div><span>Contribution before ads</span><b>{M(t.contribution)}</b></div>
-        <div><span>POAS</span><b>{x(t.poas)}</b></div>
-        <div><span>Break-even ROAS</span><b>{x(t.breakEvenRoas)}</b></div>
-        <div><span>Product cost</span><b>{pct(t.netRevenue ? t.cogs / t.netRevenue : null, 0)} of revenue</b></div>
+        <div title="Sales (incl VAT) divided by ad spend, across all platforms.">
+          <span>ROAS (blended)</span>
+          <b>{x(mer)}{mer != null && t.breakEvenRoas != null && (mer >= t.breakEvenRoas
+            ? <em className="badge ok">above break-even</em> : <em className="badge bad">below break-even</em>)}</b>
+          <small>sales ÷ ad spend</small>
+        </div>
+        <div title="The ROAS at which ads exactly pay for themselves after product, payment, courier and packaging costs.">
+          <span>Break-even ROAS</span><b>{x(t.breakEvenRoas)}</b><small>ROAS needed to cover costs</small>
+        </div>
+        <div title="Profit on ad spend: contribution (after product and order costs) divided by ad spend. Above 1.0 ads make money.">
+          <span>POAS</span><b>{x(t.poas)}</b><small>{t.poas != null ? `${cs}${t.poas.toFixed(2)} back per ${cs}1 of ads` : "profit on ad spend"}</small>
+        </div>
+        <div title="Profit (after ads, and fixed costs once entered) divided by orders."><span>Profit per order</span><b>{M(t.orders ? profit / t.orders : 0)}</b><small>{hasFixed ? "after fixed costs" : "after ads"}</small></div>
+        <div title="What orders earn after product, payment, courier, packaging and return costs, before ads."><span>Contribution before ads</span><b>{M(t.contribution)}</b><small>{pct(t.netRevenue ? t.contribution / t.netRevenue : null, 0)} of revenue</small></div>
       </section>
 
       <section className="grid-main">

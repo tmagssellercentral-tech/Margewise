@@ -54,6 +54,8 @@ export function demoRange(from: string, to: string): RangeData {
 }
 
 export function demoReport(sp: Record<string, string | undefined>, withPrev: boolean): Report {
+  // ?nofixed=1 previews the Overview of a store that hasn't entered fixed costs yet.
+  if (sp.nofixed) fixed.length = 0;
   const today = "2026-10-01";
   let from = sp.from ?? "2026-09-16", to = sp.to ?? "2026-09-30", key = sp.from ? "custom" : "14d";
   if (sp.range === "lastmonth" || sp.range === "30d") { from = "2026-09-01"; to = "2026-09-30"; key = sp.range; }

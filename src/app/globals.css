@@ -316,3 +316,15 @@ table.pnl tr.k-ratio td { color: var(--muted); font-size: 13px; font-style: ital
 table.pnl tr.k-memo td { color: var(--muted); }
 table.pnl th:first-child, table.pnl td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
 @media (max-width: 720px) { table.pnl td:first-child { white-space: normal; min-width: 150px; max-width: 170px; } }
+
+/* Overview: missing fixed costs prompt and metric explanations */
+.callout { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin: 12px 0 0;
+  padding: 14px 18px; border-radius: var(--radius); background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--c4) 45%, transparent); }
+.callout div { display: flex; flex-direction: column; gap: 2px; max-width: 70ch; }
+.callout b { font-size: 15px; }
+.callout span { font-size: 13px; color: var(--muted); }
+.btn { display: inline-block; background: var(--brand); color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 8px; white-space: nowrap; }
+.btn:hover { filter: brightness(1.08); }
+.strip small { font-size: 11.5px; color: var(--muted); }
+.strip b { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.strip em { font-style: normal; font-weight: 600; font-size: 11px; }
