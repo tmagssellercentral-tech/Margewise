@@ -28,7 +28,7 @@ const fixed: FixedCost[] = [
   { name: "Salaries (example)", category: "salaries", amount: 18000, frequency: "monthly", startDate: "2026-01-01", endDate: null, vatClaimable: false },
   { name: "Software (example)", category: "software", amount: 2500, frequency: "monthly", startDate: "2026-01-01", endDate: null, vatClaimable: true },
 ];
-const shop = { id: "demo", shop_domain: "demo", name: "Demo store (Flexi Muscles, Sept 2026)", currency: "ZAR", timezone: "Africa/Johannesburg", vat_registered: true, vat_rate: 0.15, prices_include_vat: true, country: "ZA", tax_mode: "rate" } as Shop;
+export const demoShop = { id: "demo", shop_domain: "demo", name: "Demo store (Flexi Muscles, Sept 2026)", currency: "ZAR", timezone: "Africa/Johannesburg", vat_registered: true, vat_rate: 0.15, prices_include_vat: true, country: "ZA", tax_mode: "rate" } as Shop;
 
 const all = (fixture.orders as OrderInput[]).map((o) => computeOrder(o, config, rules, new Set(fixture.bulky)));
 const revenueByDay = new Map<string, number>();
@@ -36,7 +36,7 @@ for (const r of all) revenueByDay.set(r.localDate, (revenueByDay.get(r.localDate
 const totalRevenue = [...revenueByDay.values()].reduce((a, b) => a + b, 0);
 const spendFor = (d: string) => (fixture.metaSpend * (revenueByDay.get(d) ?? 0)) / totalRevenue;
 
-function range(from: string, to: string): RangeData {
+export function demoRange(from: string, to: string): RangeData {
   const results = all.filter((r) => r.localDate >= from && r.localDate <= to);
   const days = daysBetween(from, to);
   const spend = days.reduce((s, d) => s + spendFor(d), 0);
@@ -62,9 +62,9 @@ export function demoReport(sp: Record<string, string | undefined>, withPrev: boo
   const pFrom = new Date(Date.parse(from) - n * 864e5).toISOString().slice(0, 10);
   const pTo = new Date(Date.parse(from) - 864e5).toISOString().slice(0, 10);
   return {
-    shop, today, range: { from, to, key },
-    cur: range(from, to),
-    prev: withPrev ? range(pFrom, pTo) : null,
+    shop: demoShop, today, range: { from, to, key },
+    cur: demoRange(from, to),
+    prev: withPrev ? demoRange(pFrom, pTo) : null,
     lastSync: [{ kind: "shopify", status: "ok", finished_at: "2026-10-01T03:00:00Z" }, { kind: "meta", status: "ok", finished_at: "2026-10-01T03:00:01Z" }],
     demo: true,
   };

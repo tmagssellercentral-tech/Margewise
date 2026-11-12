@@ -291,3 +291,28 @@ svg.donut .dv { font-size: 26px; font-weight: 700; fill: var(--pos); font-varian
 svg.donut .dv.neg { fill: var(--neg); }
 svg.donut .dl { font-size: 11px; fill: var(--muted); }
 @media (min-width: 961px) and (max-width: 1240px) { svg.donut { max-width: 160px; } }
+
+/* Header tools: range picker, segmented control, downloads */
+.headtools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.exports { display: flex; gap: 6px; }
+.exports a { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 550; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.exports a:hover { border-color: var(--brand); color: var(--brand); }
+nav.seg { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 2px; box-shadow: var(--shadow); }
+nav.seg a { padding: 6px 12px; border-radius: 6px; font-size: 13px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+nav.seg a.on { background: var(--brand); color: #fff; font-weight: 600; }
+
+/* P&L statement */
+table.pnl { min-width: 640px; }
+table.pnl th { white-space: nowrap; }
+table.pnl td:first-child { white-space: nowrap; padding-left: 14px; }
+table.pnl .totalcol { background: var(--bg); font-weight: 600; }
+table.pnl tr.k-heading td { padding-top: 18px; border-bottom: 0; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+table.pnl tr.k-heading td:first-child { padding-left: 4px; }
+table.pnl tr.k-heading .totalcol, table.pnl tr.k-heading td[colspan] { background: transparent; }
+table.pnl tr.k-subtotal td { font-weight: 650; border-top: 1px solid var(--muted); }
+table.pnl tr.k-subtotal td:first-child, table.pnl tr.k-total td:first-child { padding-left: 4px; }
+table.pnl tr.k-total td { font-weight: 750; font-size: 15px; border-top: 2px solid var(--ink); border-bottom: 3px double var(--ink); }
+table.pnl tr.k-ratio td { color: var(--muted); font-size: 13px; font-style: italic; }
+table.pnl tr.k-memo td { color: var(--muted); }
+table.pnl th:first-child, table.pnl td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+@media (max-width: 720px) { table.pnl td:first-child { white-space: normal; min-width: 150px; max-width: 170px; } }

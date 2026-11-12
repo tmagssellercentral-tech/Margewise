@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getReport } from "@/lib/report";
 import { Shell } from "../shell";
+import { ExportLinks } from "../components/export-links";
 import { RangePicker } from "../components/range-picker";
 import { fmt, pct } from "../components/ui";
 
@@ -51,7 +52,10 @@ export default async function Products({ searchParams }: { searchParams: SP }) {
           <h1>Products</h1>
           <p className="sub">{rows.length} products sold · {range.from} to {range.to}{losing ? ` · ${losing} losing money` : ""}</p>
         </div>
-        <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
+        <div className="headtools">
+          <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
+          <ExportLinks kind="products" query={range.key === "custom" ? `from=${range.from}&to=${range.to}` : `range=${range.key}`} />
+        </div>
       </header>
       <div className="panel">
         <form className="search" method="get">

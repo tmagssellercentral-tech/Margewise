@@ -2,6 +2,7 @@ import { db, getShop } from "@/lib/db";
 import { computeRange } from "@/lib/sync";
 import { localDate } from "@/lib/dates";
 import { resolveRange } from "@/lib/range";
+import { ExportLinks } from "../components/export-links";
 import { RangePicker } from "../components/range-picker";
 import { Flash } from "../nav";
 import { Shell } from "../shell";
@@ -42,7 +43,10 @@ export default async function Orders({ searchParams }: { searchParams: SP }) {
           <h1>Orders</h1>
           <p className="sub">{range.from} to {range.to} · {(orders ?? []).length} orders · {returns} returned or failed</p>
         </div>
-        <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
+        <div className="headtools">
+          <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
+          <ExportLinks kind="orders" query={range.key === "custom" ? `from=${range.from}&to=${range.to}` : `range=${range.key}`} />
+        </div>
       </header>
       <Flash saved={sp.saved} error={sp.error} />
       <p className="hint">

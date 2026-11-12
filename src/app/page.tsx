@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { change, getReport } from "@/lib/report";
 import { Shell } from "./shell";
+import { ExportLinks } from "./components/export-links";
 import { RangePicker } from "./components/range-picker";
 import { Breakdown, Kpi, TrendChart, fmt, pct, x } from "./components/ui";
 
@@ -38,7 +39,10 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
           <h1>Overview</h1>
           <p className="sub">Website orders · {range.from} to {range.to} · compared with the previous {cur.daily.length} days</p>
         </div>
-        <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
+        <div className="headtools">
+          <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
+          <ExportLinks kind="overview" query={range.key === "custom" ? `from=${range.from}&to=${range.to}` : `range=${range.key}`} />
+        </div>
       </header>
 
       {(t.missingCostSkus.length > 0 || cur.unmatchedGateways.length > 0 || failed.length > 0) && (
