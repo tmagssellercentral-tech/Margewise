@@ -40,7 +40,7 @@ export function axis(ccy: string, v: number) {
 /** Daily net revenue (line) over daily profit (bars, red when negative). */
 export function TrendChart({ days, ccy }: { days: { date: string; netRevenue: number; profit: number }[]; ccy: string }) {
   if (days.length === 0) return <div className="empty">No days in this range.</div>;
-  const W = 760, H = 240, L = 56, R = 12, T = 14, B = 28;
+  const W = 760, H = 400, L = 56, R = 12, T = 14, B = 28;
   const vals = days.flatMap((d) => [d.netRevenue, d.profit]);
   const max = Math.max(1, ...vals), min = Math.min(0, ...vals);
   const y = (v: number) => T + ((max - v) / (max - min)) * (H - T - B);
@@ -73,12 +73,42 @@ export function TrendChart({ days, ccy }: { days: { date: string; netRevenue: nu
 }
 
 /** Horizontal share bars: where each unit of revenue went. */
-export function Breakdown({ items, total, ccy }: { items: { label: string; value: number; tone: string }[]; total: number; ccy: string }) {
-  const shown = items.filter((i) => Math.abs(i.value) > 0.005);
+export function Breakdown({ items, total, ccy, center }: {
+  items: { label: string; value: number; tone: string }[]; total: number; ccy: string;
+  center?: { value: string; label: string; negative?: boolean };
+}) {
+  const shown = items.filter((i) => i.value > 0.005);
+  const sum = shown.reduce((s, i) => s + i.value, 0) || 1;
+  // Doughnut: one stroked circle per slice, offset along the ring. Slices are shares of all
+  // segments, so the ring stays whole even in a loss-making period.
+  const r = 70, C = 2 * Math.PI * r, gapLen = shown.length > 1 ? 2 : 0;
+  let run = 0;
+  const arcs = shown.map((i) => {
+    const len = (i.value / sum) * C;
+    const a = { ...i, len: Math.max(0, len - gapLen), offset: -run };
+    run += len;
+    return a;
+  });
   return (
     <div className="breakdown">
-      <div className="stack" aria-hidden="true">
-        {shown.map((i) => <span key={i.label} className={`seg ${i.tone}`} style={{ width: `${Math.max(0, (i.value / total) * 100)}%` }} />)}
+      <div className="donutwrap">
+        <svg className="donut" viewBox="0 0 180 180" role="img" aria-label={`Where the money went: ${shown.map((i) => `${i.label} ${pct(i.value / sum, 0)}`).join(", ")}`}>
+          <circle cx="90" cy="90" r={r} className="ring" />
+          <g transform="rotate(-90 90 90)">
+            {arcs.map((a) => (
+              <circle key={a.label} cx="90" cy="90" r={r} className={`slice ${a.tone}`}
+                strokeDasharray={`${a.len} ${C - a.len}`} strokeDashoffset={a.offset}>
+                <title>{`${a.label}: ${fmt(ccy, a.value)} (${pct(total ? a.value / total : null, 0)} of revenue)`}</title>
+              </circle>
+            ))}
+          </g>
+          {center && (
+            <>
+              <text x="90" y="88" textAnchor="middle" className={`dv${center.negative ? " neg" : ""}`}>{center.value}</text>
+              <text x="90" y="108" textAnchor="middle" className="dl">{center.label}</text>
+            </>
+          )}
+        </svg>
       </div>
       <ul>
         {shown.map((i) => (

@@ -74,7 +74,7 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
         </div>
         <div className="panel">
           <div className="ph"><h2>Where the money went</h2></div>
-          <Breakdown ccy={ccy} total={t.netRevenue} items={[
+          <Breakdown ccy={ccy} total={t.netRevenue} center={{ value: pct(t.netRevenue ? profit / t.netRevenue : null, 0), label: profit >= 0 ? "of revenue kept" : "loss on revenue", negative: profit < 0 }} items={[
             { label: "Product cost", value: t.cogs, tone: "c1" },
             { label: "Ads", value: t.adSpend, tone: "c2" },
             { label: "Courier", value: t.courier, tone: "c3" },

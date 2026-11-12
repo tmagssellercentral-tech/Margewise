@@ -278,3 +278,16 @@ table.mini th:nth-child(2) { width: 52px; }
 table.mini th:nth-child(3) { width: 84px; }
 table.mini th:nth-child(4) { width: 62px; }
 table.mini td:first-child { max-width: none; }
+
+/* Doughnut chart */
+.donutwrap { display: flex; justify-content: center; margin: 2px 0 12px; }
+svg.donut { width: 100%; max-width: 190px; height: auto; display: block; }
+svg.donut .ring { fill: none; stroke: var(--bg); stroke-width: 24; }
+svg.donut .slice { fill: none; stroke-width: 24; background: none; }
+svg.donut .slice.c1 { stroke: var(--c1); } svg.donut .slice.c2 { stroke: var(--c2); } svg.donut .slice.c3 { stroke: var(--c3); }
+svg.donut .slice.c4 { stroke: var(--c4); } svg.donut .slice.c5 { stroke: var(--c5); } svg.donut .slice.c6 { stroke: var(--c6); }
+svg.donut .slice.profit { stroke: var(--pos); }
+svg.donut .dv { font-size: 26px; font-weight: 700; fill: var(--pos); font-variant-numeric: tabular-nums; }
+svg.donut .dv.neg { fill: var(--neg); }
+svg.donut .dl { font-size: 11px; fill: var(--muted); }
+@media (min-width: 961px) and (max-width: 1240px) { svg.donut { max-width: 160px; } }
