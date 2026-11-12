@@ -325,6 +325,7 @@ export interface ProductRow {
   title: string | null;
   units: number;
   netRevenue: number;
+  cogs: number;
   contribution: number;
 }
 
@@ -333,9 +334,10 @@ export function byProduct(results: OrderResult[]): ProductRow[] {
   for (const r of results)
     for (const l of r.lines) {
       const key = l.sku ?? l.title ?? "unknown";
-      const row = m.get(key) ?? { sku: key, title: l.title, units: 0, netRevenue: 0, contribution: 0 };
+      const row = m.get(key) ?? { sku: key, title: l.title, units: 0, netRevenue: 0, cogs: 0, contribution: 0 };
       row.units += l.quantity;
       row.netRevenue += l.netRevenue;
+      row.cogs += l.cogs;
       row.contribution += l.contribution;
       m.set(key, row);
     }

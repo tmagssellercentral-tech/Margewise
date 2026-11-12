@@ -1,203 +1,145 @@
-import { getShop } from "@/lib/db";
-import { computeRange } from "@/lib/sync";
-import { localDate } from "@/lib/dates";
-import { PRESETS, resolveRange } from "@/lib/range";
-import { db } from "@/lib/db";
-import { AppNav } from "./nav";
+import Link from "next/link";
+import { change, getReport } from "@/lib/report";
+import { Shell } from "./shell";
+import { RangePicker } from "./components/range-picker";
+import { Breakdown, Kpi, TrendChart, fmt, pct, x } from "./components/ui";
 
 export const dynamic = "force-dynamic";
 
 type SP = Promise<Record<string, string | undefined>>;
 
-const R = (n: number, dp = 0) =>
-  (n < 0 ? "−R " : "R ") + Math.abs(n).toLocaleString("en-ZA", { minimumFractionDigits: dp, maximumFractionDigits: dp });
-const X = (n: number | null) => (n == null ? "–" : `${n.toFixed(2)}x`);
-const P = (n: number) => `${(n * 100).toFixed(1)}%`;
-const sign = (n: number) => (n < 0 ? "neg" : "pos");
-const PLATFORM: Record<string, string> = { shopify: "Shopify", meta: "Meta", google: "Google", tiktok: "TikTok", pinterest: "Pinterest", snapchat: "Snapchat", microsoft: "Microsoft", x: "X", influencer: "Influencers", manual: "Other" };
-const pname = (p: string) => PLATFORM[p] ?? p;
+const PLATFORM: Record<string, string> = {
+  shopify: "Shopify", meta: "Meta", google: "Google", tiktok: "TikTok", pinterest: "Pinterest", snapchat: "Snapchat",
+  microsoft: "Microsoft", x: "X", influencer: "Influencers", manual: "Other",
+};
+const pname = (p: string) => PLATFORM[p] ?? p.replace(/_/g, " ");
 
-function ProfitChart({ days }: { days: { date: string; profitAfterAds: number }[] }) {
-  if (days.length < 2) return null;
-  const W = 1000, H = 180, pad = 20;
-  const max = Math.max(1, ...days.map((d) => Math.abs(d.profitAfterAds)));
-  const zero = H / 2;
-  const bw = (W - pad * 2) / days.length;
-  return (
-    <svg className="chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Daily profit after ads">
-      <line x1={0} x2={W} y1={zero} y2={zero} stroke="var(--line)" />
-      {days.map((d, i) => {
-        const h = (Math.abs(d.profitAfterAds) / max) * (H / 2 - pad);
-        const y = d.profitAfterAds >= 0 ? zero - h : zero;
-        return (
-          <rect key={d.date} x={pad + i * bw + bw * 0.15} y={y} width={bw * 0.7} height={Math.max(h, 1)}
-            fill={d.profitAfterAds >= 0 ? "var(--pos)" : "var(--neg)"} rx={2}>
-            <title>{`${d.date}: ${R(d.profitAfterAds)}`}</title>
-          </rect>
-        );
-      })}
-    </svg>
-  );
-}
-
-export default async function Dashboard({ searchParams }: { searchParams: SP }) {
+export default async function Overview({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
-  const shop = await getShop();
-  const today = localDate(new Date(), shop.timezone);
-  const range = resolveRange(sp.range ?? "14d", today, sp.from, sp.to);
-  const r = await computeRange(shop, range.from, range.to);
-  const t = r.total;
-  const last = await db().from("sync_runs").select("kind, finished_at, status").eq("shop_id", shop.id)
-    .order("started_at", { ascending: false }).limit(20);
-  // Latest run per source; a failed ad-platform pull means its recent spend is missing.
-  const latest = new Map<string, { kind: string; status: string; finished_at: string | null }>();
-  for (const s of last.data ?? []) if (!latest.has(s.kind)) latest.set(s.kind, s);
-  const failed = [...latest.values()].filter((s) => s.status === "error").map((s) => s.kind);
+  const { shop, today, range, cur, prev, lastSync, demo } = await getReport(sp, "30d");
+  const t = cur.total, p = prev?.total;
+  const ccy = shop.currency;
+  const M = (n: number, dp = 0) => fmt(ccy, n, dp);
 
-  const days = Math.round((Date.parse(range.to) - Date.parse(range.from)) / 864e5) + 1;
-  const best = r.products.slice(0, 8);
-  const worst = r.products.slice(-5).reverse().filter((p) => !best.includes(p));
-  const be = t.breakEvenRoas;
+  const hasFixed = t.fixedCosts > 0;
+  const profit = hasFixed ? t.netProfit : t.profitAfterAds;
+  const prevProfit = p ? (hasFixed ? p.netProfit : p.profitAfterAds) : null;
+  const costs = t.netRevenue - profit;
+  const prevCosts = p ? p.netRevenue - (prevProfit ?? 0) : null;
+  const aov = t.orders ? t.revenueIncl / t.orders : 0;
+  const mer = t.adSpend ? t.revenueIncl / t.adSpend : null;
+  const failed = lastSync.filter((s) => s.status === "error").map((s) => pname(s.kind));
+  const top = cur.products.slice(0, 5);
 
   return (
-    <main className="wrap">
-      <AppNav active="dashboard" shopName={shop.name} />
-      <header className="top">
+    <Shell active="overview" shopName={shop.name} demo={demo}>
+      <header className="pagehead">
         <div>
-          <div className="shop">Website orders · {range.from} to {range.to}</div>
+          <h1>Overview</h1>
+          <p className="sub">Website orders · {range.from} to {range.to} · compared with the previous {cur.daily.length} days</p>
         </div>
-        <div className="pickers">
-          <nav className="ranges">
-            {PRESETS.map((p) => (
-              <a key={p.key} href={`/?range=${p.key}`} className={range.key === p.key ? "on" : ""}>{p.label}</a>
-            ))}
-          </nav>
-          {/* Plain GET form: works without JavaScript and keeps the range in the URL, so it can be bookmarked. */}
-          <form className={`custom${range.key === "custom" ? " on" : ""}`} method="get" action="/">
-            <span>Custom</span>
-            <label>From <input type="date" name="from" defaultValue={range.from} max={today} required /></label>
-            <label>To <input type="date" name="to" defaultValue={range.to} max={today} required /></label>
-            <button type="submit">Apply</button>
-          </form>
-        </div>
+        <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
       </header>
 
-      <p className="verdict">
-        You kept <span className={sign(t.profitAfterAds)}>{R(t.profitAfterAds)}</span> after ads
-        {t.orders > 0 ? ` from ${t.orders} orders` : ""}
-        {t.fixedCosts > 0 ? <>, and <span className={sign(t.netProfit)}>{R(t.netProfit)}</span> after fixed costs</> : ""}.
-      </p>
-
-      {t.missingCostSkus.length > 0 && (
-        <div className="alert">Missing product cost for {t.missingCostSkus.join(", ")}. Profit is overstated until these are set in Shopify.</div>
-      )}
-      {failed.length > 0 && (
-        <div className="alert">Last sync failed for {failed.map(pname).join(", ")}. Data from that source after its last good sync is missing, so profit may be overstated.</div>
-      )}
-      {r.unmatchedGateways.length > 0 && (
-        <div className="alert">No fee rule for payment method: {r.unmatchedGateways.join(", ")}. Their fees are counted as zero.</div>
+      {(t.missingCostSkus.length > 0 || cur.unmatchedGateways.length > 0 || failed.length > 0) && (
+        <div className="alerts">
+          {t.missingCostSkus.length > 0 && <Link href="/settings?tab=products">⚠ {t.missingCostSkus.length} product{t.missingCostSkus.length > 1 ? "s have" : " has"} no cost, so profit is overstated</Link>}
+          {cur.unmatchedGateways.length > 0 && <Link href="/settings?tab=fees">⚠ No fee rule for {cur.unmatchedGateways.join(", ")}</Link>}
+          {failed.length > 0 && <Link href="/settings?tab=ads">⚠ Last sync failed: {failed.join(", ")}</Link>}
+        </div>
       )}
 
-      <section className="tiles">
-        <div className="tile hero"><div className="k">Profit after ads</div><div className={`v ${sign(t.profitAfterAds)}`}>{R(t.profitAfterAds)}</div><div className="s">before fixed costs</div></div>
-        {t.fixedCosts > 0
-          ? <div className="tile"><div className="k">Net profit</div><div className={`v ${sign(t.netProfit)}`}>{R(t.netProfit)}</div><div className="s">after {R(t.fixedCosts)} fixed costs</div></div>
-          : <a className="tile add" href="/settings?tab=fixed"><div className="k">Net profit</div><div className="v">+ Add fixed costs</div><div className="s">rent, salaries, software</div></a>}
-        <div className="tile"><div className="k">Contribution before ads</div><div className="v">{R(t.contribution)}</div><div className="s">{t.netRevenue ? P(t.contribution / t.netRevenue) : "–"} of net revenue</div></div>
-        <div className="tile"><div className="k">Net revenue</div><div className="v">{R(t.netRevenue)}</div><div className="s">ex VAT, after refunds</div></div>
-        <div className="tile"><div className="k">Ad spend</div><div className="v">{R(t.adSpend)}</div><div className="s">{r.platforms.length ? r.platforms.map((p) => `${pname(p.platform)} ${R(p.adCost)}`).join(" · ") : "ex VAT"}</div></div>
-        <div className="tile"><div className="k">POAS</div><div className="v">{X(t.poas)}</div><div className="s">contribution ÷ ad spend</div></div>
-        <div className="tile"><div className="k">Break-even ROAS</div><div className="v">{X(be)}</div><div className="s">platform ROAS needed to cover costs</div></div>
+      <section className="kpis">
+        <Kpi hero label={hasFixed ? "Net profit" : "Profit after ads"} value={M(profit)} delta={change(profit, prevProfit)}
+          sub={<>{pct(t.netRevenue ? profit / t.netRevenue : null)} margin{!hasFixed && <> · <Link href="/settings?tab=fixed">add fixed costs</Link></>}</>} />
+        <Kpi label="Net revenue" value={M(t.netRevenue)} delta={change(t.netRevenue, p?.netRevenue)} sub="ex VAT, after refunds" />
+        <Kpi label="Total costs" value={M(costs)} delta={change(costs, prevCosts)} goodWhenUp={false} sub={pct(t.netRevenue ? costs / t.netRevenue : null, 0) + " of revenue"} />
+        <Kpi label="Orders" value={t.orders.toLocaleString("en-ZA")} delta={change(t.orders, p?.orders)} sub={`${M(aov)} average order`} />
+        <Kpi label="Ad spend" value={M(t.adSpend)} delta={change(t.adSpend, p?.adSpend)} goodWhenUp={false} sub={`${x(mer)} blended ROAS`} />
       </section>
 
-      {r.daily.length > 1 && (
-        <>
-          <h2>Profit after ads, by day</h2>
-          <div className="card"><ProfitChart days={r.daily} /></div>
-        </>
-      )}
+      <section className="strip">
+        <div><span>Profit per order</span><b>{M(t.orders ? profit / t.orders : 0)}</b></div>
+        <div><span>Contribution before ads</span><b>{M(t.contribution)}</b></div>
+        <div><span>POAS</span><b>{x(t.poas)}</b></div>
+        <div><span>Break-even ROAS</span><b>{x(t.breakEvenRoas)}</b></div>
+        <div><span>Product cost</span><b>{pct(t.netRevenue ? t.cogs / t.netRevenue : null, 0)} of revenue</b></div>
+      </section>
 
-      <h2>Where the money went</h2>
-      <div className="card">
-        <table>
-          <tbody>
-            <tr><td>Revenue incl VAT</td><td>{R(t.revenueIncl)}</td><td></td></tr>
-            <tr><td>Net revenue (ex VAT, after refunds)</td><td>{R(t.netRevenue)}</td><td>100%</td></tr>
-            {([
-              ["Product cost", t.cogs],
-              ["Payment fees", t.paymentFees],
-              ["Courier", t.courier],
-              ["Returns", t.returnsCost],
-              ["Packaging & fulfilment", t.packaging],
-              ...r.platforms.map((p) => [`${pname(p.platform)} ads`, p.adCost] as const),
-            ] as const).map(([k, v]) => (
-              <tr key={k}><td>{k}</td><td className="neg">{R(-v)}</td><td>{t.netRevenue ? P(v / t.netRevenue) : "–"}</td></tr>
-            ))}
-            <tr className="total"><td>Profit after ads</td><td className={sign(t.profitAfterAds)}>{R(t.profitAfterAds)}</td><td>{t.netRevenue ? P(t.profitAfterAds / t.netRevenue) : "–"}</td></tr>
-            {t.fixedCosts > 0 && (
+      <section className="grid-main">
+        <div className="panel">
+          <div className="ph"><h2>Revenue and profit by day</h2>
+            <span className="legend"><i className="lg rev" />Net revenue <i className="lg pos" />{hasFixed ? "Net profit" : "Profit after ads"}</span></div>
+          <TrendChart ccy={ccy} days={cur.daily.map((d) => ({ date: d.date, netRevenue: d.netRevenue, profit: hasFixed ? d.netProfit : d.profitAfterAds }))} />
+        </div>
+        <div className="panel">
+          <div className="ph"><h2>Where the money went</h2></div>
+          <Breakdown ccy={ccy} total={t.netRevenue} items={[
+            { label: "Product cost", value: t.cogs, tone: "c1" },
+            { label: "Ads", value: t.adSpend, tone: "c2" },
+            { label: "Courier", value: t.courier, tone: "c3" },
+            { label: "Payment fees", value: t.paymentFees, tone: "c4" },
+            { label: "Packaging & returns", value: t.packaging + t.returnsCost, tone: "c5" },
+            { label: "Fixed costs", value: t.fixedCosts, tone: "c6" },
+            { label: hasFixed ? "Net profit" : "Profit after ads", value: Math.max(0, profit), tone: "profit" },
+          ]} />
+        </div>
+      </section>
+
+      <section className="grid-two">
+        <div className="panel">
+          <div className="ph"><h2>Ad spend by platform</h2><Link href="/marketing">Campaigns →</Link></div>
+          {cur.platforms.length === 0 ? <div className="empty">No ad spend in this range.</div> : (
+            <ul className="bars">
+              {cur.platforms.map((pl) => (
+                <li key={pl.platform}>
+                  <span className="bl">{pname(pl.platform)}</span>
+                  <span className="track"><span style={{ width: `${(pl.adCost / cur.platforms[0].adCost) * 100}%` }} /></span>
+                  <span className="bv">{M(pl.adCost)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {mer != null && t.breakEvenRoas != null && (() => {
+            const scale = Math.max(mer, t.breakEvenRoas) * 1.25;
+            return (
               <>
-                <tr><td>Fixed costs</td><td className="neg">{R(-t.fixedCosts)}</td><td>{t.netRevenue ? P(t.fixedCosts / t.netRevenue) : "–"}</td></tr>
-                <tr className="total"><td>Net profit</td><td className={sign(t.netProfit)}>{R(t.netProfit)}</td><td>{t.netRevenue ? P(t.netProfit / t.netRevenue) : "–"}</td></tr>
+                <div className="roasline" aria-label={`Blended ROAS ${x(mer)}, break-even ${x(t.breakEvenRoas)}`}>
+                  <span className={`fill ${mer >= t.breakEvenRoas ? "ok" : "bad"}`} style={{ width: `${(mer / scale) * 100}%` }} />
+                  <span className="mark" style={{ left: `${(t.breakEvenRoas / scale) * 100}%` }} />
+                </div>
+                <div className="roaslabels"><span>Blended ROAS {x(mer)}</span><span>Break-even {x(t.breakEvenRoas)} ▏</span></div>
               </>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="grid2">
-        <div>
-          <h2>Best products</h2>
-          <div className="card">
-            <table>
-              <thead><tr><th>Product</th><th>Units</th><th>Contribution</th></tr></thead>
-              <tbody>
-                {best.map((p) => (
-                  <tr key={p.sku}><td>{p.title ?? p.sku}</td><td>{p.units}</td><td className={sign(p.contribution)}>{R(p.contribution)}</td></tr>
-                ))}
-              </tbody>
-            </table>
+            );
+          })()}
+          <div className="adstats">
+            <div><span>Ad spend / revenue</span><b>{pct(t.netRevenue ? t.adSpend / t.netRevenue : null, 0)}</b></div>
+            <div><span>Ad cost per order</span><b>{M(t.orders ? t.adSpend / t.orders : 0)}</b></div>
+            <div><span>Profit per {ccy === "ZAR" ? "R" : ccy + " "}1 of ads</span><b>{t.adSpend ? (profit / t.adSpend).toFixed(2) : "–"}</b></div>
           </div>
+          <p className="note">{mer != null && t.breakEvenRoas != null && (mer >= t.breakEvenRoas ? "Ads are paying for themselves overall." : "Overall, ads cost more than they bring in.")}</p>
         </div>
-        <div>
-          <h2>Weakest products</h2>
-          <div className="card">
-            <table>
-              <thead><tr><th>Product</th><th>Units</th><th>Contribution</th></tr></thead>
-              <tbody>
-                {worst.map((p) => (
-                  <tr key={p.sku}><td>{p.title ?? p.sku}</td><td>{p.units}</td><td className={sign(p.contribution)}>{R(p.contribution)}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="panel">
+          <div className="ph"><h2>Top products by profit</h2><Link href="/products">All products →</Link></div>
+          <table className="mini">
+            <thead><tr><th>Product</th><th>Units</th><th>Profit</th><th>Margin</th></tr></thead>
+            <tbody>
+              {top.map((r) => (
+                <tr key={r.sku}>
+                  <td>{r.title ?? r.sku}</td><td>{r.units}</td>
+                  <td className={r.contribution < 0 ? "neg" : ""}>{M(r.contribution)}</td>
+                  <td>{pct(r.netRevenue ? r.contribution / r.netRevenue : null, 0)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="note">Product profit is before ads and fixed costs.</p>
         </div>
-      </div>
-
-      <h2>Campaigns vs break-even ({X(be)})</h2>
-      {days < 10 && <div className="alert">Short window: judge campaigns on 10–14 days before acting.</div>}
-      <div className="card">
-        <table>
-          <thead><tr><th>Campaign</th><th>Platform</th><th>Spend</th><th>Platform ROAS</th><th>Status</th></tr></thead>
-          <tbody>
-            {r.campaigns.filter((c) => c.spend > 0).map((c) => (
-              <tr key={c.id}>
-                <td>{c.name}</td>
-                <td>{pname(c.platform)}</td>
-                <td>{R(c.spend)}</td>
-                <td>{X(c.roas)}</td>
-                <td>{be == null || c.roas == null ? "–" : c.roas >= be
-                  ? <span className="badge ok">Above break-even</span>
-                  : <span className="badge bad">Below break-even</span>}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      </section>
 
       <p className="foot">
-        Last sync: {[...latest.values()].map((s) => `${pname(s.kind)} ${s.status} ${s.finished_at ? new Date(s.finished_at).toLocaleString("en-ZA", { timeZone: shop.timezone }) : "running"}`).join(" · ") || "never"}.
-        Platform ROAS uses each platform&apos;s own attribution (platforms can both claim the same sale); profit uses Shopify orders.
+        Last sync: {lastSync.map((s) => `${pname(s.kind)} ${s.status === "ok" ? "✓" : "✗"} ${s.finished_at ? new Date(s.finished_at).toLocaleString("en-ZA", { timeZone: shop.timezone, dateStyle: "short", timeStyle: "short" }) : ""}`).join(" · ") || "never"}
       </p>
-    </main>
+    </Shell>
   );
 }

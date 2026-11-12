@@ -1,7 +1,8 @@
 import { db, getShop, loadConfig } from "@/lib/db";
 import { addDays, localDate } from "@/lib/dates";
 import { findFeeRule } from "@/lib/engine";
-import { AppNav, Flash } from "../nav";
+import { Flash } from "../nav";
+import { Shell } from "../shell";
 import {
   addManualSpend, applyFeePreset, saveTxnFee, deleteCourierRule, deleteFeeRule, deleteFixedCost, deleteUploadedSpend, importCourierCsv,
   importSpendCsv, saveCourierRule, saveFeeRule, saveFixedCost, saveProduct, saveShipping, saveStore,
@@ -27,9 +28,8 @@ export default async function Settings({ searchParams }: { searchParams: SP }) {
   const tab = TABS.some((t) => t.key === sp.tab) ? sp.tab! : "store";
   const shop = await getShop();
   return (
-    <main className="wrap">
-      <AppNav active="settings" shopName={shop.name} />
-      <h1 className="pagetitle">Settings</h1>
+    <Shell active="settings" shopName={shop.name}>
+      <header className="pagehead"><div><h1>Settings</h1><p className="sub">Costs, fees, tax and connections that feed every profit figure</p></div></header>
       <nav className="tabs">
         {TABS.map((t) => (
           <a key={t.key} href={`/settings?tab=${t.key}`} className={tab === t.key ? "on" : ""}>{t.label}</a>
@@ -42,7 +42,7 @@ export default async function Settings({ searchParams }: { searchParams: SP }) {
       {tab === "products" && <ProductsTab q={sp.q} />}
       {tab === "fixed" && <FixedTab />}
       {tab === "ads" && <AdsTab />}
-    </main>
+    </Shell>
   );
 }
 

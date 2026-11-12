@@ -1,8 +1,10 @@
 import { db, getShop } from "@/lib/db";
 import { computeRange } from "@/lib/sync";
 import { localDate } from "@/lib/dates";
-import { PRESETS, resolveRange } from "@/lib/range";
-import { AppNav, Flash } from "../nav";
+import { resolveRange } from "@/lib/range";
+import { RangePicker } from "../components/range-picker";
+import { Flash } from "../nav";
+import { Shell } from "../shell";
 import { saveOrder } from "../settings/actions";
 
 export const dynamic = "force-dynamic";
@@ -34,25 +36,20 @@ export default async function Orders({ searchParams }: { searchParams: SP }) {
   const returns = (orders ?? []).filter((o) => o.return_status !== "none").length;
 
   return (
-    <main className="wrap">
-      <AppNav active="orders" shopName={shop.name} />
-      <header className="top">
+    <Shell active="orders" shopName={shop.name}>
+      <header className="pagehead">
         <div>
-          <h1 className="pagetitle">Orders</h1>
-          <div className="shop">{range.from} to {range.to} · {(orders ?? []).length} orders · {returns} returned or failed</div>
+          <h1>Orders</h1>
+          <p className="sub">{range.from} to {range.to} · {(orders ?? []).length} orders · {returns} returned or failed</p>
         </div>
-        <nav className="ranges">
-          {PRESETS.map((p) => (
-            <a key={p.key} href={`/orders?range=${p.key}`} className={range.key === p.key ? "on" : ""}>{p.label}</a>
-          ))}
-        </nav>
+        <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
       </header>
       <Flash saved={sp.saved} error={sp.error} />
       <p className="hint">
         Mark returns and failed deliveries here. <b>Back in stock</b> and <b>failed delivery</b> cancel the product cost, because the item comes back. <b>Written off</b> keeps it.
         Both add the return courier and handling cost. If you know the real courier cost of an order, for example from an invoice, enter it to replace the standard rate.
       </p>
-      <div className="card">
+      <div className="panel">
         <div className="gt orders">
           <div className="gh"><span>Order</span><span>Date</span><span>Paid ({shop.currency})</span><span>Payment</span><span>Status</span><span>Actual courier</span><span>Contribution</span></div>
           {(orders ?? []).map((o) => {
@@ -79,6 +76,6 @@ export default async function Orders({ searchParams }: { searchParams: SP }) {
           })}
         </div>
       </div>
-    </main>
+    </Shell>
   );
 }
