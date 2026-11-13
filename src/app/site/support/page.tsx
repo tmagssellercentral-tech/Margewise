@@ -18,7 +18,6 @@ export default function Support() {
       <p>Shopify reports sales. Margewise removes VAT or sales tax and refunds, then subtracts product cost, payment fees, shipping, packaging, returns and ad spend. Check that every product has a cost under Settings → Products.</p>
       <h3>How do I remove my data?</h3>
       <p>Uninstall Margewise from your Shopify admin. Your store&apos;s data is deleted within 48 hours of Shopify telling us the app was removed. You can also email us to request deletion at any time.</p>
-      <p className="s-small">Margewise is a product of {COMPANY}.</p>
     </main>
   );
 }

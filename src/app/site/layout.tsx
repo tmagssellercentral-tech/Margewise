@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./site.css";
-import { COMPANY, SUPPORT } from "./brand";
+import { SUPPORT } from "./brand";
 
 export const metadata: Metadata = {
   title: { default: "Margewise: true profit for Shopify stores", template: "%s · Margewise" },
@@ -26,7 +26,6 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <footer className="s-foot">
         <div>
           <div className="s-logo small">Marge<span>wise</span></div>
-          <p>Margewise is a product of {COMPANY}.</p>
         </div>
         <nav>
           <Link href="/privacy">Privacy policy</Link>
