@@ -128,6 +128,8 @@ export const credentialsFor = (store: string): StoreCredentials => ({ store, tok
 
 // ---------- installing ----------
 
+const NO_FEE_GATEWAYS = ["manual", "Cash on Delivery (COD)", "Bank Deposit", "Money Order", "gift_card"];
+
 interface ShopInfo {
   shop: {
     name: string;
@@ -203,6 +205,8 @@ export async function ensureInstalled(store: string, idToken: string): Promise<{
     shopRow = ins.data;
     const s = await db().from("shop_settings").insert({ shop_id: shopRow.id });
     if (s.error) throw new Error(s.error.message);
+    // Payment methods that never carry a processing fee, so they don't show as missing a fee rule.
+    await db().from("payment_fee_rules").insert(NO_FEE_GATEWAYS.map((g) => ({ shop_id: shopRow.id, gateway_match: g, note: "No processing fee" })));
   } else {
     await db().from("shops").update({ uninstalled_at: null, installed_at: new Date().toISOString(), name: info.name }).eq("id", shopRow.id);
   }
