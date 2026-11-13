@@ -7,6 +7,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 export interface StoreCredentials {
   store: string; // some-store.myshopify.com
   token: () => Promise<string>;
+  /** Shopify order search filter for the channels that count as this store's sales. */
+  channels?: string;
 }
 
 const als = new AsyncLocalStorage<StoreCredentials>();

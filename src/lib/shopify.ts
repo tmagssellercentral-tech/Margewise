@@ -86,6 +86,10 @@ async function accessToken(store: string): Promise<string> {
   return cached.token;
 }
 
+// The owner store counts website orders only (its marketplace orders are reported elsewhere).
+// App Store installs count online store, point of sale and manual (draft) orders.
+const channelFilter = () => currentStore()?.channels ?? "source_name:web";
+
 export async function gql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
   // An App Store install runs with its own store and token; the owner store uses the environment.
   const ctx = currentStore();
@@ -119,7 +123,7 @@ export async function gql<T>(query: string, variables: Record<string, unknown>):
 
 /** Website orders updated on or after `sinceIso` (catches later refunds and cancellations). */
 export async function fetchOrdersUpdatedSince(sinceIso: string): Promise<ShopifyOrder[]> {
-  const q = `updated_at:>='${sinceIso}' source_name:web`;
+  const q = `updated_at:>='${sinceIso}' ${channelFilter()}`;
   const out: ShopifyOrder[] = [];
   let after: string | null = null;
   const fields = new Set<Optional>(["country", "customer"]);
@@ -166,7 +170,7 @@ export interface HistoryOrder {
  * bought when (an anonymous customer number and the order value). Throws if customer access is missing.
  */
 export async function fetchHistoryPage(sinceIso: string, after: string | null) {
-  const q = `created_at:>='${sinceIso}' source_name:web`;
+  const q = `created_at:>='${sinceIso}' ${channelFilter()}`;
   const data = await gql<{ orders: { nodes: HistoryOrder[]; pageInfo: { hasNextPage: boolean; endCursor: string } } }>(
     `query H($after: String, $q: String!) { orders(first: 250, after: $after, query: $q, sortKey: CREATED_AT) {
       nodes { id createdAt cancelledAt customer { id } currentTotalPriceSet { shopMoney { amount } } totalRefundedSet { shopMoney { amount } } }

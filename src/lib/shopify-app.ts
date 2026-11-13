@@ -123,7 +123,8 @@ export async function storeToken(store: string): Promise<string> {
   return p;
 }
 
-export const credentialsFor = (store: string): StoreCredentials => ({ store, token: () => storeToken(store) });
+export const STORE_CHANNELS = "(source_name:web OR source_name:pos OR source_name:shopify_draft_order)";
+export const credentialsFor = (store: string): StoreCredentials => ({ store, token: () => storeToken(store), channels: STORE_CHANNELS });
 
 // ---------- installing ----------
 

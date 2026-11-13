@@ -39,7 +39,7 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
       <header className="pagehead">
         <div>
           <h1>Overview</h1>
-          <p className="sub">Website orders · {range.from} to {range.to} · compared with the previous {cur.daily.length} days</p>
+          <p className="sub">{shop.is_owner === false ? "Orders" : "Website orders"} · {range.from} to {range.to} · compared with the previous {cur.daily.length} days</p>
         </div>
         <div className="headtools">
           <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
