@@ -31,6 +31,10 @@ export async function getReport(sp: Record<string, string | undefined>, defaultR
     const { refreshIfStale } = await import("./onboarding");
     const { after } = await import("next/server");
     after(() => refreshIfStale(shop).catch(() => null));
+    if (!shop.plan_checked_at || Date.now() - Date.parse(shop.plan_checked_at) > 5 * 60_000) {
+      const { refreshPlan } = await import("./plans");
+      after(() => refreshPlan(shop).catch(() => null));
+    }
   }
   const today = localDate(new Date(), shop.timezone);
   const range = resolveRange(sp.range ?? defaultRange, today, sp.from, sp.to);

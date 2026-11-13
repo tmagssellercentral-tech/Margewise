@@ -29,7 +29,7 @@ const fixed: FixedCost[] = [
   { name: "Salaries (example)", category: "salaries", amount: 18000, frequency: "monthly", startDate: "2026-01-01", endDate: null, vatClaimable: false },
   { name: "Software (example)", category: "software", amount: 2500, frequency: "monthly", startDate: "2026-01-01", endDate: null, vatClaimable: true },
 ];
-export const demoShop = { id: "demo", shop_domain: "demo", name: "Demo store (Flexi Muscles, Sept 2026)", currency: "ZAR", timezone: "Africa/Johannesburg", vat_registered: true, vat_rate: 0.15, prices_include_vat: true, country: "ZA", tax_mode: "rate" } as Shop;
+export const demoShop = { id: "demo", shop_domain: "demo", name: "Demo store (Flexi Muscles, Sept 2026)", currency: "ZAR", timezone: "Africa/Johannesburg", vat_registered: true, vat_rate: 0.15, prices_include_vat: true, country: "ZA", tax_mode: "rate", is_owner: true, plan: "owner" } as Shop;
 
 const all = (fixture.orders as OrderInput[]).map((o) => computeOrder(o, config, rules, new Set(fixture.bulky)));
 const revenueByDay = new Map<string, number>();

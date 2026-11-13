@@ -56,6 +56,17 @@ export async function POST(req: Request) {
       } else detail = "no data held";
       break;
     }
+    case "app_subscriptions/update": {
+      // Plan chosen or changed on Shopify's plan page.
+      const sub = payload.app_subscription as { name?: string; status?: string } | undefined;
+      if (shop && sub) {
+        const { planFromSubscriptionName } = await import("@/lib/plans");
+        const plan = sub.status === "ACTIVE" ? planFromSubscriptionName(sub.name) : "free";
+        await db().from("shops").update({ plan, plan_checked_at: new Date().toISOString() }).eq("id", shop.id);
+        detail = `plan ${plan} (${sub.status})`;
+      }
+      break;
+    }
     case "customers/data_request":
       // Margewise holds only the anonymous customer id on orders; the request is logged for a manual reply.
       detail = "logged for reply by support@margewise.io";

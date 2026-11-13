@@ -6,6 +6,8 @@ import { RangePicker } from "./components/range-picker";
 import { Breakdown, Kpi, TrendChart, fmt, pct, x } from "./components/ui";
 import { CustomersPanel } from "./components/customers-panel";
 import { AdMetricsGuide } from "./components/ad-metrics-guide";
+import { Locked, PlanNotice } from "./components/plan";
+import { PLANS, planOf, usage } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,18 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
   const blendedRoas = t.adSpend && attributed ? attributed / t.adSpend : null;
   const failed = lastSync.filter((s) => s.status === "error").map((s) => pname(s.kind));
   const top = cur.products.slice(0, 5);
+  const plan = planOf(shop);
+  const u = await usage(shop, today);
+  if (u.over && plan.key === "free") {
+    return (
+      <Shell active="overview" shopName={shop.name} demo={demo}>
+        <header className="pagehead"><div><h1>Overview</h1></div></header>
+        <Locked shop={shop} title="Your store has outgrown the Free plan"
+          what={`${u.orders} orders this month, more than the Free plan's ${u.limit}. Your data is still syncing and nothing is lost: pick a plan to see this month's profit again. Every paid plan starts with a 14-day free trial.`}
+          needs={PLANS.starter} />
+      </Shell>
+    );
+  }
 
   return (
     <Shell active="overview" shopName={shop.name} demo={demo}>
@@ -58,6 +72,8 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
           {failed.length > 0 && <Link href="/settings?tab=ads">⚠ Last sync failed: {failed.join(", ")}</Link>}
         </div>
       )}
+
+      <PlanNotice shop={shop} u={u} />
 
       <section className="kpis">
         <Kpi hero label={hasFixed ? "Net profit" : "Profit after ads"} value={M(profit)} delta={change(profit, prevProfit)}
@@ -171,7 +187,10 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
         </div>
       </section>
 
-      <CustomersPanel c={cur.customers} ccy={ccy} />
+      {plan.customerMetrics ? <CustomersPanel c={cur.customers} ccy={ccy} /> : (
+        <Locked shop={shop} title="Customers" needs={PLANS.growth}
+          what="New versus returning customers, customer acquisition cost (CAC), repeat purchase rate and lifetime value (LTV) are on the Growth plan and above." />
+      )}
 
       <p className="foot">
         Last sync: {lastSync.map((s) => `${pname(s.kind)} ${s.status === "ok" ? "✓" : "✗"} ${s.finished_at ? new Date(s.finished_at).toLocaleString("en-ZA", { timeZone: shop.timezone, dateStyle: "short", timeStyle: "short" }) : ""}`).join(" · ") || "never"}

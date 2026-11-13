@@ -27,6 +27,9 @@ export interface Shop {
   tax_mode: "rate" | "shopify";
   myshopify_domain?: string | null;
   is_owner?: boolean;
+  plan?: string;
+  plan_interval?: string | null;
+  plan_checked_at?: string | null;
 }
 
 export const OWNER_DOMAIN = () => process.env.SHOP_DOMAIN ?? "fleximuscles.co.za";

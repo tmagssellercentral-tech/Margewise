@@ -10,6 +10,8 @@ import {
 } from "./actions";
 import { PLATFORMS, isConfigured, platformName } from "@/lib/platforms";
 import { FEE_PRESETS } from "@/lib/fee-presets";
+import { PLANS, PUBLIC_PLANS, planOf, usage } from "@/lib/plans";
+import { UpgradeLink } from "../components/plan";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,7 @@ const TABS = [
   { key: "products", label: "Products" },
   { key: "fixed", label: "Fixed costs" },
   { key: "ads", label: "Ad platforms" },
+  { key: "plan", label: "Plan" },
 ];
 
 type SP = Promise<Record<string, string | undefined>>;
@@ -43,6 +46,7 @@ export default async function Settings({ searchParams }: { searchParams: SP }) {
       {tab === "products" && <ProductsTab q={sp.q} />}
       {tab === "fixed" && <FixedCosts back="/settings?tab=fixed" />}
       {tab === "ads" && <AdsTab />}
+      {tab === "plan" && <PlanTab />}
     </Shell>
   );
 }
@@ -411,5 +415,43 @@ async function AdsTab() {
         </div>
       )}
     </>
+  );
+}
+
+const PLAN_POINTS: Record<string, string[]> = {
+  free: ["Up to 100 orders a month", "True profit dashboard", "Profit & loss, expenses, exports", "All ad platforms"],
+  starter: ["Up to 500 orders a month", "Everything in Free", "14-day free trial"],
+  growth: ["Up to 1,500 orders a month", "Everything in Starter", "Customers: CAC, repeat rate, LTV", "Campaign profit vs break-even"],
+  scale: ["Up to 5,000 orders a month", "Everything in Growth", "Priority support"],
+};
+
+async function PlanTab() {
+  const shop = await getShop();
+  const today = localDate(new Date(), shop.timezone);
+  const u = await usage(shop, today);
+  const current = planOf(shop);
+  if (current.key === "owner") {
+    return <div className="card"><h2>Plan</h2><p className="hint">This is the owner store: every feature, no order limit and no charge.</p></div>;
+  }
+  return (
+    <div className="card">
+      <h2>Plan</h2>
+      <p>
+        You&apos;re on <b>{current.name}</b>{shop.plan_interval === "ANNUAL" ? " (billed yearly)" : ""}.
+        {u.limit != null && <> {u.orders.toLocaleString("en-US")} of {u.limit.toLocaleString("en-US")} orders used this month.</>}
+      </p>
+      <div className="plans">
+        {PUBLIC_PLANS.map((p) => (
+          <div key={p.key} className={p.key === current.key ? "on" : ""}>
+            <h3>{p.name}{p.key === current.key && <span className="badge ok" style={{ marginLeft: 8 }}>Current</span>}</h3>
+            <div className="price">{p.monthly ? `$${p.monthly}` : "Free"}<small className="hint">{p.monthly ? " /month" : ""}</small></div>
+            {p.annual && <div className="hint">or ${p.annual.toLocaleString("en-US")}/year (20% off)</div>}
+            <ul>{PLAN_POINTS[p.key].map((t) => <li key={t}>{t}</li>)}</ul>
+          </div>
+        ))}
+      </div>
+      <p className="hint">More than {PLANS.scale.orderLimit!.toLocaleString("en-US")} orders a month? Email support@margewise.io about the Plus plan. Prices in US dollars, billed by Shopify with your store&apos;s other charges.</p>
+      <UpgradeLink shop={shop}>Change plan</UpgradeLink>
+    </div>
   );
 }
