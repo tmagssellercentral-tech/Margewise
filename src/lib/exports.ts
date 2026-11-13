@@ -20,8 +20,7 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 
 export async function buildSheet(kind: string, sp: Record<string, string | undefined>): Promise<Sheet> {
   if (kind === "pnl") {
-    const months = [3, 6, 12].includes(Number(sp.months)) ? Number(sp.months) : 6;
-    const { shop, cols } = await getMonthly(months);
+    const { shop, cols } = await getMonthly(sp);
     const rows = buildPnl(cols.map((c) => ({ period: c.period, total: c.data.total, platforms: c.data.platforms, fixedCosts: c.data.fixedCosts, config: c.data.config })));
     const keys = [...cols.map((c) => c.period.key), "total"];
     const bold = new Set<number>();

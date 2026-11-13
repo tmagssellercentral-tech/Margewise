@@ -81,7 +81,7 @@ async function accessToken(store: string): Promise<string> {
   return cached.token;
 }
 
-async function gql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
+export async function gql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
   const store = process.env.SHOPIFY_STORE; // e.g. flexi-muscles.myshopify.com
   if (!store) throw new Error("SHOPIFY_STORE must be set");
   const token = await accessToken(store);

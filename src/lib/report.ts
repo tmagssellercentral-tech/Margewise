@@ -47,17 +47,17 @@ export function change(cur: number, prev: number | null | undefined): number | n
 }
 
 /** One computed range per month for the P&L (demo data in demo mode). */
-export async function getMonthly(months: number) {
-  const { monthPeriods } = await import("./pnl");
+export async function getMonthly(sp: Record<string, string | undefined>) {
+  const { choosePeriods } = await import("./pnl");
   if (isDemo()) {
     const { demoRange, demoShop } = await import("./demo");
     const today = "2026-09-30";
-    const periods = monthPeriods(today, months);
-    return { shop: demoShop, today, demo: true, cols: periods.map((period) => ({ period, data: demoRange(period.from, period.to) })) };
+    const choice = choosePeriods(today, sp);
+    return { shop: demoShop, today, demo: true, choice, cols: choice.periods.map((period) => ({ period, data: demoRange(period.from, period.to) })) };
   }
   const shop = await getShop();
   const today = localDate(new Date(), shop.timezone);
-  const periods = monthPeriods(today, months);
-  const data = await Promise.all(periods.map((p) => computeRange(shop, p.from, p.to)));
-  return { shop, today, demo: false, cols: periods.map((period, i) => ({ period, data: data[i] })) };
+  const choice = choosePeriods(today, sp);
+  const data = await Promise.all(choice.periods.map((p) => computeRange(shop, p.from, p.to)));
+  return { shop, today, demo: false, choice, cols: choice.periods.map((period, i) => ({ period, data: data[i] })) };
 }

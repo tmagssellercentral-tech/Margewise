@@ -49,3 +49,19 @@ describe("monthly P&L", () => {
     expect(row("net-margin")[2]).toBeCloseTo(row("net-margin")[0]!, 9);
   });
 });
+
+import { choosePeriods } from "../src/lib/pnl";
+describe("P&L custom range", () => {
+  it("takes whole months, caps at today and 24 months, and swaps a reversed range", () => {
+    const c = choosePeriods("2026-11-13", { from: "2026-02", to: "2026-04" });
+    expect(c.periods.map((p) => [p.label, p.from, p.to])).toEqual([
+      ["Feb 2026", "2026-02-01", "2026-02-28"], ["Mar 2026", "2026-03-01", "2026-03-31"], ["Apr 2026", "2026-04-01", "2026-04-30"],
+    ]);
+    expect(choosePeriods("2026-11-13", { from: "2026-10", to: "2027-03" }).periods.at(-1)).toMatchObject({ label: "Nov 2026 (to date)", to: "2026-11-13" });
+    expect(choosePeriods("2026-11-13", { from: "2023-01", to: "2026-11" }).periods.length).toBe(24);
+    expect(choosePeriods("2026-11-13", { from: "2026-12", to: "2026-12" }).periods.map((p) => p.key)).toEqual(["2026-11"]);
+    expect(choosePeriods("2026-11-13", { from: "2026-12", to: "2026-11" }).periods.map((p) => p.key)).toEqual(["2026-11"]);
+    expect(choosePeriods("2026-11-13", { from: "2025-11", to: "2025-12" }).periods.map((p) => p.key)).toEqual(["2025-11", "2025-12"]);
+    expect(choosePeriods("2026-11-13", {}).periods.length).toBe(6);
+  });
+});

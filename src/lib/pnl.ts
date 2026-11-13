@@ -47,6 +47,26 @@ export function monthPeriods(today: string, n: number): PnlPeriod[] {
   return out;
 }
 
+const isYm = (s: string | undefined): s is string => !!s && /^\d{4}-(0[1-9]|1[0-2])$/.test(s);
+
+/**
+ * Columns for a P&L: either the last `months` months, or a custom span of whole months
+ * (?from=YYYY-MM&to=YYYY-MM, at most 24, never past today).
+ */
+export function choosePeriods(today: string, sp: Record<string, string | undefined>) {
+  if (isYm(sp.from) && isYm(sp.to)) {
+    const end = sp.to > today.slice(0, 7) ? today.slice(0, 7) : sp.to;
+    const start = sp.from <= end ? sp.from : end;
+    const span = (Number(end.slice(0, 4)) - Number(start.slice(0, 4))) * 12 + Number(end.slice(5)) - Number(start.slice(5)) + 1;
+    const n = Math.min(24, span);
+    const lastDay = end === today.slice(0, 7) ? today : addDays(`${Number(end.slice(5)) === 12 ? Number(end.slice(0, 4)) + 1 : end.slice(0, 4)}-${String(Number(end.slice(5)) % 12 + 1).padStart(2, "0")}-01`, -1);
+    return { key: "custom", from: start, to: end, periods: monthPeriods(lastDay, n) };
+  }
+  const months = [3, 6, 12].includes(Number(sp.months)) ? Number(sp.months) : 6;
+  const periods = monthPeriods(today, months);
+  return { key: String(months), from: periods[0].key, to: periods.at(-1)!.key, periods };
+}
+
 const PLATFORM: Record<string, string> = {
   meta: "Meta", google: "Google", tiktok: "TikTok", pinterest: "Pinterest", snapchat: "Snapchat",
   microsoft: "Microsoft", x: "X", influencer: "Influencers", manual: "Other",

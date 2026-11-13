@@ -328,3 +328,8 @@ table.pnl th:first-child, table.pnl td:first-child { position: sticky; left: 0; 
 .strip small { font-size: 11.5px; color: var(--muted); }
 .strip b { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .strip em { font-style: normal; font-weight: 600; font-size: 11px; }
+form.monthrange { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
+form.monthrange.on { border-color: var(--brand); }
+form.monthrange label { flex-direction: row; align-items: center; gap: 6px; font-size: 13px; }
+form.monthrange input { padding: 4px 6px; }
+form.monthrange button { padding: 6px 12px; }
