@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 
 const PRESETS = [
-  ["yesterday", "Yesterday"], ["7d", "Last 7 days"], ["14d", "Last 14 days"], ["30d", "Last 30 days"],
+  ["today", "Today"], ["yesterday", "Yesterday"], ["7d", "Last 7 days"], ["14d", "Last 14 days"], ["30d", "Last 30 days"],
   ["mtd", "This month"], ["lastmonth", "Last month"], ["custom", "Custom range…"],
 ];
 

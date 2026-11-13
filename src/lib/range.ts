@@ -1,6 +1,7 @@
 import { addDays, isYmd } from "./dates";
 
 export const PRESETS = [
+  { key: "today", label: "Today" },
   { key: "yesterday", label: "Yesterday" },
   { key: "7d", label: "Last 7 days" },
   { key: "14d", label: "Last 14 days" },
@@ -13,6 +14,7 @@ export function resolveRange(preset: string, today: string, from?: string, to?: 
   if (isYmd(from ?? null) && isYmd(to ?? null) && from! <= to!) return { from: from!, to: to!, key: "custom" };
   const y = addDays(today, -1);
   switch (preset) {
+    case "today": return { from: today, to: today, key: preset };
     case "yesterday": return { from: y, to: y, key: preset };
     case "7d": return { from: addDays(today, -7), to: y, key: preset };
     case "30d": return { from: addDays(today, -30), to: y, key: preset };
