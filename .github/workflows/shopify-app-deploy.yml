@@ -1,0 +1,20 @@
+# Uploads shopify.app.toml (URLs, scopes, webhooks incl. the privacy webhooks) to the Margewise
+# app as a new version. Runs when that file changes on main, or by hand from the Actions tab.
+name: Deploy Shopify app config
+on:
+  push:
+    branches: [main]
+    paths: [shopify.app.toml]
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SHOPIFY_SERVICE_ACCOUNT_TOKEN: ${{ secrets.SHOPIFY_SERVICE_ACCOUNT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install -g @shopify/cli@latest
+      - run: shopify app deploy --allow-updates --message "Config from GitHub ${{ github.sha }}"
