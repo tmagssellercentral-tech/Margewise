@@ -2,7 +2,21 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Phase 1: the dashboard is private to the store owner, protected by a username and password.
 // Phase 3 replaces this with Shopify sign-in.
+// Public website hosts: served from /site with no login.
+const PUBLIC_HOSTS = new Set(["margewise.io", "www.margewise.io"]);
+
 export function middleware(req: NextRequest) {
+  const host = (req.headers.get("host") ?? "").toLowerCase().split(":")[0];
+  const path = req.nextUrl.pathname;
+  if (PUBLIC_HOSTS.has(host)) {
+    if (path.startsWith("/site")) return NextResponse.next();
+    const url = req.nextUrl.clone();
+    url.pathname = path === "/" ? "/site" : `/site${path}`;
+    return NextResponse.rewrite(url);
+  }
+  // The website pages are public on any host (useful for previews).
+  if (path === "/site" || path.startsWith("/site/")) return NextResponse.next();
+
   const user = process.env.DASHBOARD_USER;
   const pass = process.env.DASHBOARD_PASSWORD;
   if (!user || !pass) return new NextResponse("Dashboard login is not configured", { status: 503 });
