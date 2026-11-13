@@ -141,21 +141,6 @@ interface ShopInfo {
   };
 }
 
-const WEBHOOK_URL = () => process.env.WEBHOOK_URL ?? "https://app.margewise.io/api/webhooks";
-
-/** So Margewise hears when a store uninstalls, even before the app's config file is deployed. */
-async function subscribeUninstall(store: string, token: string) {
-  await fetch(`https://${store}/admin/api/${process.env.SHOPIFY_API_VERSION ?? "2026-07"}/graphql.json`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Shopify-Access-Token": token },
-    body: JSON.stringify({
-      query: `mutation($uri: String!) { webhookSubscriptionCreate(topic: APP_UNINSTALLED, webhookSubscription: { uri: $uri }) { userErrors { message } } }`,
-      variables: { uri: WEBHOOK_URL() },
-    }),
-    cache: "no-store",
-  });
-}
-
 async function shopInfo(store: string, token: string): Promise<ShopInfo["shop"]> {
   const res = await fetch(`https://${store}/admin/api/${process.env.SHOPIFY_API_VERSION ?? "2026-07"}/graphql.json`, {
     method: "POST",
@@ -211,6 +196,5 @@ export async function ensureInstalled(store: string, idToken: string): Promise<{
     await db().from("shops").update({ uninstalled_at: null, installed_at: new Date().toISOString(), name: info.name }).eq("id", shopRow.id);
   }
   await saveTokens(store, t);
-  await subscribeUninstall(store, t.access_token).catch(() => undefined); // also declared in shopify.app.toml
   return { shop: { ...shopRow, vat_rate: Number(shopRow.vat_rate) } as Shop, isNew: true };
 }

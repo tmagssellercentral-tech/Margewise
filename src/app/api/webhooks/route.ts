@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
   let payload: Record<string, unknown> = {};
   try { payload = JSON.parse(raw); } catch { /* empty body is fine */ }
-  const shop = (await db().from("shops").select("id, is_owner").eq("myshopify_domain", store).maybeSingle()).data;
+  const shop = (await db().from("shops").select("id, is_owner, uninstalled_at").eq("myshopify_domain", store).maybeSingle()).data;
   let detail = "";
 
   switch (topic) {
@@ -39,11 +39,12 @@ export async function POST(req: Request) {
       break;
     case "shop/redact":
       // Delete the store and everything about it (every store table cascades from shops).
-      if (shop && !shop.is_owner) {
+      // Skipped if the store reinstalled Margewise in the meantime: its data is in use again.
+      if (shop && !shop.is_owner && shop.uninstalled_at) {
         const { error } = await db().from("shops").delete().eq("id", shop.id);
         if (error) return new Response("Retry", { status: 500 });
         detail = "store data deleted";
-      } else detail = shop ? "owner store kept" : "no data held";
+      } else detail = !shop ? "no data held" : shop.is_owner ? "owner store kept" : "store reinstalled, data kept";
       break;
     case "customers/redact": {
       const cid = Number((payload.customer as { id?: number } | undefined)?.id);
