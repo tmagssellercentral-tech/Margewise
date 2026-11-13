@@ -39,11 +39,13 @@ export default async function Marketing({ searchParams }: { searchParams: SP }) 
         <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
       </header>
 
-      <section className="kpis four">
+      <section className="kpis">
         <Kpi hero label="Ad spend" value={M(t.adSpend)} sub={`${pct(t.netRevenue ? t.adSpend / t.netRevenue : null, 0)} of net revenue`} />
         <Kpi label="Blended ROAS" value={x(mer)} sub="all revenue ÷ all ad spend" />
         <Kpi label="Break-even ROAS" value={x(be)} sub="needed to cover product and order costs" />
         <Kpi label="POAS" value={x(t.poas)} sub="contribution ÷ ad spend" />
+        <Kpi label="CAC" value={cur.customers?.known && cur.customers.cac != null ? M(cur.customers.cac) : "–"}
+          sub={cur.customers?.known ? `ad spend ÷ ${cur.customers.newCustomers} new customers` : "needs customer access"} />
       </section>
 
       {short && <div className="alerts"><span>⚠ Short window: judge campaigns on 10–14 days or more before pausing anything.</span></div>}

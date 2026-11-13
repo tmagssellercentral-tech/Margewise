@@ -24,21 +24,25 @@ export interface ShopifyOrder {
   taxesIncluded?: boolean;
   totalTaxSet?: { shopMoney: { amount: string } } | null;
   shippingAddress?: { countryCodeV2: string | null } | null;
+  customer?: { id: string } | null;
   transactions?: { kind: string; status: string; fees: { amount: { amount: string } }[] }[];
   lineItems: { nodes: ShopifyLine[]; pageInfo: { hasNextPage: boolean } };
 }
 
 // The shipping country is part of the address, which Shopify can treat as protected customer
 // data. If the app lacks that access, the query is retried without it.
-const COUNTRY = "shippingAddress { countryCodeV2 }";
-const ordersQuery = (withCountry: boolean) => `
+// Optional fields that need extra access (protected customer data or read_customers). When
+// Shopify denies one, the query is retried without it and the rest of the sync carries on.
+const OPTIONAL = { country: "shippingAddress { countryCodeV2 }", customer: "customer { id }" } as const;
+type Optional = keyof typeof OPTIONAL;
+const ordersQuery = (fields: Set<Optional>) => `
 query Orders($first: Int!, $after: String, $q: String!) {
   orders(first: $first, after: $after, query: $q, sortKey: UPDATED_AT) {
     nodes {
       id name createdAt cancelledAt sourceName paymentGatewayNames displayFinancialStatus
       currencyCode taxesIncluded
       totalTaxSet { shopMoney { amount } }
-      ${withCountry ? COUNTRY : ""}
+      ${[...fields].map((f) => OPTIONAL[f]).join(" ")}
       transactions(first: 20) { kind status fees { amount { amount } } }
       totalShippingPriceSet { shopMoney { amount } }
       totalRefundedSet { shopMoney { amount } }
@@ -115,21 +119,58 @@ export async function fetchOrdersUpdatedSince(sinceIso: string): Promise<Shopify
   const q = `updated_at:>='${sinceIso}' source_name:web`;
   const out: ShopifyOrder[] = [];
   let after: string | null = null;
-  let withCountry = true;
+  const fields = new Set<Optional>(["country", "customer"]);
   do {
     type Page = { orders: { nodes: ShopifyOrder[]; pageInfo: { hasNextPage: boolean; endCursor: string } } };
-    let data: Page;
-    try {
-      data = await gql<Page>(ordersQuery(withCountry), { first: 50, after, q });
-    } catch (e) {
-      if (!withCountry || !/shippingAddress|ACCESS_DENIED|protected customer data/i.test(String(e))) throw e;
-      withCountry = false;
-      data = await gql<Page>(ordersQuery(false), { first: 50, after, q });
-    }
+    const data: Page = await withOptional(fields, (f) => gql<Page>(ordersQuery(f), { first: 50, after, q }));
     out.push(...data.orders.nodes);
     after = data.orders.pageInfo.hasNextPage ? data.orders.pageInfo.endCursor : null;
   } while (after);
   return out;
+}
+
+/** Runs a query, dropping whichever optional field Shopify refuses, until it succeeds. */
+async function withOptional<T>(fields: Set<Optional>, run: (f: Set<Optional>) => Promise<T>): Promise<T> {
+  for (;;) {
+    try {
+      return await run(fields);
+    } catch (e) {
+      const msg = String(e);
+      const denied = /ACCESS_DENIED|protected customer data|read_customers/i.test(msg);
+      // Shopify names the refused field in the error's path, e.g. "path":["orders","nodes",0,"customer"].
+      const inPath = (name: string) => new RegExp(`"path":\\[[^\\]]*"${name}"`).test(msg);
+      const culprit: Optional | undefined =
+        fields.has("customer") && (inPath("customer") || /read_customers/.test(msg)) ? "customer"
+        : fields.has("country") && (inPath("shippingAddress") || /shippingAddress/.test(msg)) ? "country"
+        : fields.has("country") ? "country" : fields.has("customer") ? "customer" : undefined;
+      if (!denied || !culprit) throw e;
+      fields.delete(culprit);
+    }
+  }
+}
+
+export interface HistoryOrder {
+  id: string;
+  createdAt: string;
+  cancelledAt: string | null;
+  customer?: { id: string } | null;
+  currentTotalPriceSet: { shopMoney: { amount: string } };
+  totalRefundedSet: { shopMoney: { amount: string } };
+}
+
+/**
+ * One page of all-time website orders, oldest first, from `sinceIso`: just enough to know who
+ * bought when (an anonymous customer number and the order value). Throws if customer access is missing.
+ */
+export async function fetchHistoryPage(sinceIso: string, after: string | null) {
+  const q = `created_at:>='${sinceIso}' source_name:web`;
+  const data = await gql<{ orders: { nodes: HistoryOrder[]; pageInfo: { hasNextPage: boolean; endCursor: string } } }>(
+    `query H($after: String, $q: String!) { orders(first: 250, after: $after, query: $q, sortKey: CREATED_AT) {
+      nodes { id createdAt cancelledAt customer { id } currentTotalPriceSet { shopMoney { amount } } totalRefundedSet { shopMoney { amount } } }
+      pageInfo { hasNextPage endCursor } } }`,
+    { after, q },
+  );
+  return data.orders;
 }
 
 export const money = (m: { shopMoney: { amount: string } } | null | undefined) =>

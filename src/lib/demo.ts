@@ -6,6 +6,7 @@ import fixture from "../../test/fixtures/september-2026.json";
 import { adCost, byProduct, computeOrder, fixedCostsForDay, totals, type FeeRule, type FixedCost, type OrderInput, type ShopConfig } from "./engine";
 import { daysBetween } from "./dates";
 import type { Report, RangeData } from "./report";
+import { computeCustomerMetrics } from "./customers";
 import type { Shop } from "./db";
 
 const config: ShopConfig = {
@@ -41,7 +42,17 @@ export function demoRange(from: string, to: string): RangeData {
   const days = daysBetween(from, to);
   const spend = days.reduce((s, d) => s + spendFor(d), 0);
   const fx = days.reduce((s, d) => s + fixedCostsForDay(fixed, d, config), 0);
+  // Demo customers: every third order is a repeat buyer, so the panel has something to show.
+  const tot = totals(results, spend, config, fx);
+  const orders = results.map((r, i) => ({ shopifyId: i + 1, customerId: i % 3 === 2 ? 1000 + (i % 7) : 5000 + i, netRevenue: r.netRevenue }));
+  const firstOrder = new Map<number, number>();
+  for (const o of orders) if (o.customerId != null && !firstOrder.has(o.customerId)) firstOrder.set(o.customerId, o.customerId < 5000 ? -1 : o.shopifyId);
+  const customers = computeCustomerMetrics({
+    orders, firstOrder, adSpend: tot.adSpend, revenueDivisor: 1.15, contributionMargin: tot.netRevenue ? tot.contribution / tot.netRevenue : null,
+    summary: { customers: 4200, repeatCustomers: 1050, orders: 5600, netIncl: 4200 * 2900, firstOrderAt: "2021-06-01T08:00:00Z" },
+  });
   return {
+    customers,
     config, results,
     daily: days.map((d) => ({ date: d, ...totals(results.filter((r) => r.localDate === d), spendFor(d), config, fixedCostsForDay(fixed, d, config)) })),
     total: totals(results, spend, config, fx),

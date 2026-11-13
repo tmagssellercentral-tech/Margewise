@@ -1,7 +1,8 @@
-import { adCost, byProduct, computeOrder, fixedCostsForDay, totals, type OrderInput, type OrderResult, type ReturnStatus } from "./engine";
+import { adCost, byProduct, computeOrder, fixedCostsForDay, revenueDivisor, totals, type OrderInput, type OrderResult, type ReturnStatus } from "./engine";
 import { db, getShop, loadConfig, type Shop } from "./db";
-import { actualFees, fetchOrdersUpdatedSince, money, numericId } from "./shopify";
+import { actualFees, fetchHistoryPage, fetchOrdersUpdatedSince, money, numericId } from "./shopify";
 import { dailyRates } from "./fx";
+import { computeCustomerMetrics, type CustomerMetrics, type LifetimeSummary } from "./customers";
 import { fetchCampaignDays, type CampaignDay } from "./meta";
 import { fetchGoogleCampaignDays, googleConfigured } from "./google";
 import { fetchTikTokCampaignDays, tiktokConfigured } from "./tiktok";
@@ -49,6 +50,8 @@ export async function syncShopify(shop: Shop, sinceIso: string) {
             // Only overwrite the country when Shopify returned the address field.
             ...(o.shippingAddress !== undefined ? { ship_country: o.shippingAddress?.countryCodeV2 ?? null } : {}),
             actual_payment_fee: actualFees(o),
+            // Anonymous customer number only; present once the app has read_customers.
+            ...(o.customer !== undefined ? { customer_id: o.customer ? numericId(o.customer.id) : null } : {}),
             synced_at: new Date().toISOString(),
           })),
           { onConflict: "shop_id,shopify_id" },
@@ -74,12 +77,93 @@ export async function syncShopify(shop: Shop, sinceIso: string) {
         const ins = await db().from("order_lines").insert(lines);
         if (ins.error) throw new Error(ins.error.message);
       }
+      // Keep the all-time customer history current (only when customer access is granted).
+      const withCustomer = batch.filter((o) => o.customer !== undefined);
+      if (withCustomer.length) {
+        const up = await db().from("customer_orders").upsert(
+          withCustomer.map((o) => {
+            const goods = o.lineItems.nodes.reduce((a, l) => a + money(l.discountedTotalSet), 0) + money(o.totalShippingPriceSet);
+            return {
+              shop_id: shop.id,
+              shopify_order_id: numericId(o.id),
+              customer_id: o.customer ? numericId(o.customer.id) : null,
+              created_at: o.createdAt,
+              total_incl: goods + (o.taxesIncluded === false ? money(o.totalTaxSet) : 0),
+              refund_incl: money(o.totalRefundedSet),
+              cancelled: o.cancelledAt != null,
+            };
+          }),
+          { onConflict: "shop_id,shopify_order_id" },
+        );
+        if (up.error) throw new Error(up.error.message);
+      }
     }
     return { orders: orders.length };
   });
 }
 
 export const CSV_ACCOUNT = "csv";
+
+/** New vs returning customers, CAC, repeat rate and LTV for the orders in a range. */
+async function customerMetricsFor(
+  shop: Shop, to: string, who: { name: string; shopifyId: number; customerId: number | null }[],
+  results: OrderResult[], adSpend: number, contributionMargin: number | null, divisor: number,
+): Promise<CustomerMetrics> {
+  const revenueByName = new Map(results.map((r) => [r.name, r.netRevenue]));
+  const orders = who.map((w) => ({ shopifyId: w.shopifyId, customerId: w.customerId, netRevenue: revenueByName.get(w.name) ?? 0 }));
+  const ids = [...new Set(orders.map((o) => o.customerId).filter((c): c is number => c != null))];
+  const firstOrder = new Map<number, number>();
+  let summary: LifetimeSummary | null = null;
+  if (ids.length) {
+    for (let i = 0; i < ids.length; i += 300) {
+      const { data, error } = await db().from("customer_first_orders").select("customer_id, shopify_order_id")
+        .eq("shop_id", shop.id).in("customer_id", ids.slice(i, i + 300));
+      if (error) throw new Error(error.message);
+      for (const r of data ?? []) firstOrder.set(Number(r.customer_id), Number(r.shopify_order_id));
+    }
+    const { data, error } = await db().rpc("customer_summary", { p_shop: shop.id, p_until: `${to}T23:59:59Z` });
+    if (error) throw new Error(error.message);
+    const s = (data ?? [])[0];
+    if (s) summary = { customers: Number(s.customers), repeatCustomers: Number(s.repeat_customers), orders: Number(s.orders), netIncl: Number(s.net_incl), firstOrderAt: s.first_order_at };
+  }
+  return computeCustomerMetrics({ orders, firstOrder, adSpend, summary, revenueDivisor: divisor, contributionMargin });
+}
+
+/**
+ * Loads all-time website orders (customer number, date, value) into customer_orders, oldest
+ * first, resuming from the newest one already stored. Stops before the time budget so it can be
+ * called repeatedly until `done`.
+ */
+export async function syncCustomerHistory(shop: Shop, budgetMs = 240_000) {
+  const started = Date.now();
+  const { data: last } = await db().from("customer_orders").select("created_at").eq("shop_id", shop.id)
+    .order("created_at", { ascending: false }).limit(1).maybeSingle();
+  const since = last?.created_at ?? "2000-01-01T00:00:00Z";
+  let after: string | null = null;
+  let saved = 0;
+  for (;;) {
+    const page = await fetchHistoryPage(since, after);
+    if (page.nodes.length) {
+      const { error } = await db().from("customer_orders").upsert(
+        page.nodes.map((o) => ({
+          shop_id: shop.id,
+          shopify_order_id: numericId(o.id),
+          customer_id: o.customer ? numericId(o.customer.id) : null,
+          created_at: o.createdAt,
+          total_incl: money(o.currentTotalPriceSet),
+          refund_incl: money(o.totalRefundedSet),
+          cancelled: o.cancelledAt != null,
+        })),
+        { onConflict: "shop_id,shopify_order_id" },
+      );
+      if (error) throw new Error(error.message);
+      saved += page.nodes.length;
+    }
+    if (!page.pageInfo.hasNextPage) return { saved, done: true };
+    if (Date.now() - started > budgetMs) return { saved, done: false };
+    after = page.pageInfo.endCursor;
+  }
+}
 
 export type AdPlatform = "meta" | "google" | "tiktok" | "pinterest" | "snapchat";
 
@@ -141,10 +225,11 @@ export async function computeRange(shop: Shop, from: string, to: string) {
   const { config, rules, bulky, costOverrides, fixedCosts } = await loadConfig(shop);
 
   const orders: OrderInput[] = [];
+  const who: { name: string; shopifyId: number; customerId: number | null }[] = [];
   for (let page = 0; ; page++) {
     const { data, error } = await db()
       .from("orders")
-      .select("name, local_date, gateway, shipping_incl, refund_incl, return_status, taxes_included, tax_amount, ship_country, actual_payment_fee, actual_courier, order_lines(sku, title, quantity, line_total_incl, unit_cost)")
+      .select("name, shopify_id, customer_id, local_date, gateway, shipping_incl, refund_incl, return_status, taxes_included, tax_amount, ship_country, actual_payment_fee, actual_courier, order_lines(sku, title, quantity, line_total_incl, unit_cost)")
       .eq("shop_id", shop.id)
       .eq("cancelled", false)
       .gte("local_date", from)
@@ -152,7 +237,8 @@ export async function computeRange(shop: Shop, from: string, to: string) {
       .order("created_at")
       .range(page * 1000, page * 1000 + 999);
     if (error) throw new Error(error.message);
-    for (const o of data ?? [])
+    for (const o of data ?? []) {
+      who.push({ name: o.name, shopifyId: Number(o.shopify_id), customerId: o.customer_id != null ? Number(o.customer_id) : null });
       orders.push({
         name: o.name,
         localDate: o.local_date,
@@ -173,16 +259,29 @@ export async function computeRange(shop: Shop, from: string, to: string) {
           unitCost: l.unit_cost != null ? Number(l.unit_cost) : l.sku ? costOverrides.get(l.sku) ?? null : null,
         })),
       });
+    }
     if (!data || data.length < 1000) break;
   }
 
-  const ads = await db()
-    .from("ad_spend_daily")
-    .select("date, platform, campaign_id, campaign_name, spend, purchase_value")
-    .eq("shop_id", shop.id)
-    .gte("date", from)
-    .lte("date", to);
-  if (ads.error) throw new Error(ads.error.message);
+  // Paged: a year of campaign-days runs past the 1,000-row page size.
+  const adRows: { date: string; platform: string; campaign_id: string; campaign_name: string | null; spend: number; purchase_value: number }[] = [];
+  for (let page = 0; ; page++) {
+    const { data, error } = await db()
+      .from("ad_spend_daily")
+      .select("date, platform, campaign_id, campaign_name, spend, purchase_value")
+      .eq("shop_id", shop.id)
+      .gte("date", from)
+      .lte("date", to)
+      .order("date")
+      .order("platform")
+      .order("account_id")
+      .order("campaign_id")
+      .range(page * 1000, page * 1000 + 999);
+    if (error) throw new Error(error.message);
+    adRows.push(...(data ?? []));
+    if (!data || data.length < 1000) break;
+  }
+  const ads = { data: adRows };
 
   const results: OrderResult[] = orders.map((o) => computeOrder(o, config, rules, bulky));
   const spendByDate = new Map<string, number>();
@@ -206,11 +305,15 @@ export async function computeRange(shop: Shop, from: string, to: string) {
     ...totals(results.filter((r) => r.localDate === d), spendByDate.get(d) ?? 0, config, fixedByDate.get(d) ?? 0),
   }));
 
+  const total = totals(results, totalSpend, config, totalFixed);
+  const customers = await customerMetricsFor(shop, to, who, results, total.adSpend, total.netRevenue ? total.contribution / total.netRevenue : null, revenueDivisor(config));
+
   return {
     config,
     results,
     daily,
-    total: totals(results, totalSpend, config, totalFixed),
+    total,
+    customers,
     fixedCosts,
     products: byProduct(results),
     // Ad cost (after the store's VAT treatment) per platform, largest first.

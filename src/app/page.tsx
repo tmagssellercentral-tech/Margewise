@@ -4,6 +4,7 @@ import { Shell } from "./shell";
 import { ExportLinks } from "./components/export-links";
 import { RangePicker } from "./components/range-picker";
 import { Breakdown, Kpi, TrendChart, fmt, pct, x } from "./components/ui";
+import { CustomersPanel } from "./components/customers-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -160,6 +161,8 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
           <p className="note">Product profit is before ads and fixed costs.</p>
         </div>
       </section>
+
+      <CustomersPanel c={cur.customers} ccy={ccy} />
 
       <p className="foot">
         Last sync: {lastSync.map((s) => `${pname(s.kind)} ${s.status === "ok" ? "✓" : "✗"} ${s.finished_at ? new Date(s.finished_at).toLocaleString("en-ZA", { timeZone: shop.timezone, dateStyle: "short", timeStyle: "short" }) : ""}`).join(" · ") || "never"}
