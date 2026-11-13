@@ -86,4 +86,4 @@ async function embedded(req: NextRequest, headers: Headers) {
   return frameHeaders(NextResponse.next({ request: { headers } }), claims.shop);
 }
 
-export const config = { matcher: ["/((?!api/cron|api/backfill|api/diag|api/webhooks|_next/static|_next/image|favicon.ico).*)"] };
+export const config = { matcher: ["/((?!api/cron|api/backfill|api/diag|api/webhooks|_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|margewise-icon).*)"] };

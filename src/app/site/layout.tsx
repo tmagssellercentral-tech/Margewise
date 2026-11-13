@@ -15,7 +15,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="site">
       <header className="s-head">
-        <Link href="/" className="s-logo">Marge<span>wise</span></Link>
+        <Link href="/" className="s-logo"><img src="/margewise-icon.svg" alt="" width={30} height={30} />Marge<span>wise</span></Link>
         <nav>
           <Link href="/#features">Features</Link>
           <Link href="/support">Support</Link>

@@ -6,6 +6,8 @@
 .s-head nav a { color: var(--ink); text-decoration: none; font-size: 15px; }
 .s-logo { font-weight: 800; font-size: 22px; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; }
 .s-logo span { color: var(--brand); }
+.s-logo { display: inline-flex; align-items: center; }
+.s-logo img { border-radius: 8px; margin-right: 9px; }
 .s-logo.small { font-size: 18px; }
 .s-btn { background: var(--brand); color: var(--on-brand) !important; padding: 9px 16px; border-radius: 9px; font-weight: 650; text-decoration: none; white-space: nowrap; display: inline-block; }
 .s-btn.big { padding: 13px 22px; font-size: 16px; }

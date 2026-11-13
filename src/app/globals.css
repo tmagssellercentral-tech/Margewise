@@ -147,6 +147,8 @@ a.tile.add .v { font-size: 16px; }
 .side { background: var(--side); color: var(--side-ink); padding: 20px 12px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 4px; }
 .side .brand { color: #fff; font-weight: 750; font-size: 20px; letter-spacing: -0.02em; text-decoration: none; padding: 0 10px; }
 .side .brand span { color: #6fd3a3; }
+.side .brand { display: inline-flex; align-items: center; }
+.side .brand .mark { border-radius: 7px; margin-right: 9px; box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
 .side .store { font-size: 12.5px; padding: 2px 10px 16px; color: #d9ebe1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side nav { display: flex; flex-direction: column; gap: 2px; }
 .side nav a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; color: var(--side-ink); text-decoration: none; font-size: 14.5px; font-weight: 500; }

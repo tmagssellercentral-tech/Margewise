@@ -14,7 +14,7 @@ export function Shell({ active, shopName, children, demo }: { active: string; sh
   return (
     <div className="shell">
       <aside className="side">
-        <Link href="/" className="brand">Marge<span>wise</span></Link>
+        <Link href="/" className="brand"><img src="/margewise-icon.svg" alt="" width={26} height={26} className="mark" />Marge<span>wise</span></Link>
         <div className="store" title={shopName}>{shopName}</div>
         <nav>
           {NAV.map((n) => (
