@@ -8,6 +8,10 @@ export async function GET(req: Request) {
   if (!cronAuthorized(req, true)) return new Response("Unauthorized", { status: 401 });
   const out: Record<string, unknown> = {};
   try {
+    const d = await gql<{ shop: { myshopifyDomain: string } }>("{ shop { myshopifyDomain } }", {});
+    out.myshopifyDomain = d.shop.myshopifyDomain;
+  } catch (e) { out.shopError = String(e).slice(0, 300); }
+  try {
     const d = await gql<{ currentAppInstallation: { accessScopes: { handle: string }[] } }>("{ currentAppInstallation { accessScopes { handle } } }", {});
     out.scopes = d.currentAppInstallation.accessScopes.map((s) => s.handle);
   } catch (e) { out.scopesError = String(e).slice(0, 300); }

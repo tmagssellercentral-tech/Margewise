@@ -357,3 +357,7 @@ form.monthrange button { padding: 6px 12px; }
 /* Readable placeholders and form text in both themes */
 input::placeholder { color: var(--muted); opacity: 0.85; }
 select option { background: var(--surface); color: var(--ink); }
+
+/* Inside the Shopify admin: the admin's left menu replaces Margewise's side menu. */
+body.embedded .shell { display: block; background: var(--bg); }
+body.embedded .side { display: none; }

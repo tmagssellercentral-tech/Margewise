@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { CourierRule, FeeRule, FixedCost, FixedCostFrequency, ShopConfig } from "./engine";
 
@@ -24,9 +25,32 @@ export interface Shop {
   prices_include_vat: boolean;
   country: string;
   tax_mode: "rate" | "shopify";
+  myshopify_domain?: string | null;
+  is_owner?: boolean;
 }
 
-export async function getShop(domain = process.env.SHOP_DOMAIN ?? "fleximuscles.co.za"): Promise<Shop> {
+export const OWNER_DOMAIN = () => process.env.SHOP_DOMAIN ?? "fleximuscles.co.za";
+
+/**
+ * The store this request is for. Inside the Shopify admin, middleware has verified the session
+ * token and passed the store on; the store is installed on first open. Everywhere else (the
+ * owner's password-protected dashboard, cron jobs) it's the owner store.
+ */
+export async function getShop(domain?: string): Promise<Shop> {
+  if (!domain) {
+    const embedded = await embeddedStore();
+    if (embedded) {
+      if (embedded.store === process.env.OWNER_MYSHOPIFY_DOMAIN) return getShop(OWNER_DOMAIN());
+      const { shop, isNew } = await installOnce(embedded.store, embedded.idToken);
+      if (isNew) {
+        const { firstLoad } = await import("./onboarding");
+        const { after } = await import("next/server");
+        after(() => firstLoad(shop));
+      }
+      return shop;
+    }
+  }
+  domain ??= OWNER_DOMAIN();
   const { data, error } = await db().from("shops").select("*").eq("shop_domain", domain).single();
   if (error) throw new Error(`Shop ${domain} not found: ${error.message}`);
   return { ...data, vat_rate: Number(data.vat_rate) } as Shop;
@@ -91,4 +115,29 @@ export async function loadConfig(shop: Shop): Promise<{
       }),
     ),
   };
+}
+
+// One install check per request, even though many components ask for the shop.
+const installOnce = cache(async (store: string, idToken: string) => {
+  const { ensureInstalled } = await import("./shopify-app");
+  return ensureInstalled(store, idToken);
+});
+
+/** The verified store and session token passed on by middleware, or null outside the Shopify admin. */
+async function embeddedStore(): Promise<{ store: string; idToken: string } | null> {
+  let h: Headers;
+  try {
+    const { headers } = await import("next/headers");
+    h = (await headers()) as unknown as Headers;
+  } catch {
+    return null; // not inside a request (cron, scripts)
+  }
+  const store = h.get("x-mw-shop");
+  const idToken = h.get("x-mw-idtoken");
+  if (!store || !idToken) return null;
+  // Checked again here, so a route the middleware doesn't cover can't be handed a store.
+  const { verifySessionToken } = await import("./session-token");
+  const claims = await verifySessionToken(idToken, process.env.SHOPIFY_APP_CLIENT_ID ?? "", process.env.SHOPIFY_APP_CLIENT_SECRET ?? "");
+  if (!claims || claims.shop !== store) throw new Error("Invalid Shopify session");
+  return { store, idToken };
 }

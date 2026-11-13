@@ -1,0 +1,30 @@
+# Margewise public app configuration, deployed with the Shopify CLI (`shopify app deploy`).
+# client_id is filled in once the app exists in the Margewise Partner organization.
+client_id = "REPLACE_WITH_CLIENT_ID"
+name = "Margewise"
+application_url = "https://app.margewise.io"
+embedded = true
+
+[build]
+include_config_on_deploy = true
+
+[access_scopes]
+# Shopify-managed install: stores approve these scopes when they install; no OAuth redirect needed.
+scopes = "read_orders,read_all_orders,read_products,read_inventory,read_customers"
+
+[auth]
+redirect_urls = ["https://app.margewise.io/auth/bounce"]
+
+[webhooks]
+api_version = "2026-07"
+
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "https://app.margewise.io/api/webhooks"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
+  uri = "https://app.margewise.io/api/webhooks"
+
+[pos]
+embedded = false

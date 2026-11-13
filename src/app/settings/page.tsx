@@ -341,13 +341,14 @@ async function AdsTab() {
     <>
       <div className="card">
         <h2>Ad platforms</h2>
-        <p className="hint">Connected platforms sync every night at 05:00 SAST and re-check the last 3 days. Spend billed in another currency is converted at that day&apos;s European Central Bank rate.</p>
+        <p className="hint">Connected platforms sync every night and re-check the last 3 days. Spend billed in another currency is converted at that day&apos;s European Central Bank rate.</p>
         <table>
           <thead><tr><th>Platform</th><th>How</th><th>Status</th><th>Last sync</th></tr></thead>
           <tbody>
             {PLATFORMS.map((p) => {
               const run = lastRun.get(p.key);
-              const on = p.kind === "connector" && isConfigured(p);
+              // Connections set up in the environment belong to the owner store only.
+              const on = p.kind === "connector" && shop.is_owner !== false && isConfigured(p);
               return (
                 <tr key={p.key}>
                   <td>{p.name}</td>

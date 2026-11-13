@@ -1,4 +1,5 @@
 // Reads orders from the Shopify Admin GraphQL API with a custom-app access token.
+import { currentStore } from "./shop-context";
 
 const API_VERSION = process.env.SHOPIFY_API_VERSION ?? "2026-07";
 
@@ -86,9 +87,11 @@ async function accessToken(store: string): Promise<string> {
 }
 
 export async function gql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
-  const store = process.env.SHOPIFY_STORE; // e.g. flexi-muscles.myshopify.com
+  // An App Store install runs with its own store and token; the owner store uses the environment.
+  const ctx = currentStore();
+  const store = ctx?.store ?? process.env.SHOPIFY_STORE; // e.g. flexi-muscles.myshopify.com
   if (!store) throw new Error("SHOPIFY_STORE must be set");
-  const token = await accessToken(store);
+  const token = ctx ? await ctx.token() : await accessToken(store);
   for (let attempt = 0; attempt < 5; attempt++) {
     const res = await fetch(`https://${store}/admin/api/${API_VERSION}/graphql.json`, {
       method: "POST",

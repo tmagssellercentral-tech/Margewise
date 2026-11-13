@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cronAuthorized } from "@/lib/auth";
 import { runSync } from "@/lib/sync";
 import { addDays, localDate } from "@/lib/dates";
+import { syncInstalledStores } from "@/lib/onboarding";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -12,5 +13,8 @@ export async function GET(req: Request) {
   if (!cronAuthorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const today = localDate(new Date(), process.env.SHOP_TIMEZONE ?? "Africa/Johannesburg");
   const result = await runSync(addDays(today, -3), today);
-  return NextResponse.json(result, { status: result.errors.length ? 207 : 200 });
+  // Then every store that installed Margewise from the App Store (Shopify data only).
+  let stores: unknown[] = [];
+  try { stores = await syncInstalledStores(); } catch (e) { result.errors.push(`stores: ${e}`); }
+  return NextResponse.json({ ...result, stores }, { status: result.errors.length ? 207 : 200 });
 }
