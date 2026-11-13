@@ -41,6 +41,20 @@ export default function Terms() {
         uninstall Margewise your store&apos;s data is deleted as described there.
       </p>
 
+      <h2>Data processing</h2>
+      <p>
+        For personal data about your customers that Margewise receives from your store, you are the controller and we act as your processor.
+        We:
+      </p>
+      <ul>
+        <li>process it only to provide Margewise to you, on your instructions, and never sell it or use it for advertising;</li>
+        <li>receive only what the service needs: order details and Shopify&apos;s anonymous customer number, not names, emails, phone numbers or addresses;</li>
+        <li>keep it encrypted in transit and at rest, and limit access to the people who run the service;</li>
+        <li>use subprocessors only to host and run the service (currently Vercel for hosting and Supabase for the database), under their own data protection terms;</li>
+        <li>tell you without undue delay if we become aware of a breach affecting your data;</li>
+        <li>act on Shopify&apos;s customer data and redaction requests, and delete your store&apos;s data after you uninstall, as set out in the <a href="/privacy">privacy policy</a>.</li>
+      </ul>
+
       <h2>Availability and changes</h2>
       <p>
         We aim to keep Margewise available and accurate, but we don&apos;t guarantee it will be uninterrupted or error-free, or that third-party
