@@ -17,6 +17,8 @@ export interface PnlInput {
   platforms: { platform: string; adCost: number }[];
   fixedCosts: FixedCost[];
   config: ShopConfig;
+  /** Sales the ad platforms report for their own ads (their attribution). */
+  attributed?: number;
 }
 
 export type RowKind = "line" | "subtotal" | "total" | "ratio" | "memo" | "heading";
@@ -130,6 +132,7 @@ export function buildPnl(cols: PnlInput[]): PnlRow[] {
     { key: "h-memo", label: "Key figures", kind: "heading", values: [] },
     { key: "orders", label: "Orders", kind: "memo", values: orders },
     { key: "aov", label: "Average order value (incl VAT)", kind: "memo", values: ratio(t("revenueIncl"), orders) },
-    { key: "mer", label: "Blended ROAS", kind: "memo", values: ratio(t("revenueIncl"), ads) },
+    { key: "mer", label: "MER (all sales ÷ ad spend)", kind: "memo", values: ratio(t("revenueIncl"), ads) },
+    { key: "blended-roas", label: "Blended ROAS (platform-reported sales ÷ ad spend)", kind: "memo", values: ratio(sum((c) => c.attributed ?? 0), ads).map((v) => v || null) },
   ];
 }

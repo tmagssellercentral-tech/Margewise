@@ -59,7 +59,8 @@ export function demoRange(from: string, to: string): RangeData {
     fixedCosts: fixed,
     products: byProduct(results),
     platforms: spend > 0 ? [{ platform: "meta", adCost: adCost(spend, config) }] : [],
-    campaigns: [],
+    // Example of what Meta itself reports (its attribution), so the platform figures have something to show.
+    campaigns: spend > 0 ? [{ id: "demo", platform: "meta", name: "Meta (all campaigns, example)", spend: adCost(spend, config), purchaseValue: adCost(spend, config) * 4.1, roas: 4.1 }] : [],
     unmatchedGateways: [],
   } as unknown as RangeData;
 }

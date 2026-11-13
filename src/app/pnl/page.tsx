@@ -13,7 +13,7 @@ export default async function Pnl({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
   const { shop, today, cols, demo, choice } = await getMonthly(sp);
   const exportQuery = choice.key === "custom" ? `from=${choice.from}&to=${choice.to}` : `months=${choice.key}`;
-  const rows = buildPnl(cols.map((c) => ({ period: c.period, total: c.data.total, platforms: c.data.platforms, fixedCosts: c.data.fixedCosts, config: c.data.config })));
+  const rows = buildPnl(cols.map((c) => ({ period: c.period, total: c.data.total, platforms: c.data.platforms, fixedCosts: c.data.fixedCosts, config: c.data.config, attributed: c.data.campaigns.reduce((s, x) => s + x.purchaseValue, 0) })));
   const ccy = shop.currency;
   const missing = new Set(cols.flatMap((c) => c.data.total.missingCostSkus));
   const cell = (kind: string, key: string, v: number | null | undefined, negative?: boolean) => {
@@ -21,7 +21,7 @@ export default async function Pnl({ searchParams }: { searchParams: SP }) {
     if (v == null || !isFinite(v)) return "–";
     if (kind === "ratio") return pct(v);
     if (key === "orders") return Math.round(v).toLocaleString("en-ZA");
-    if (key === "mer") return x(v);
+    if (key === "mer" || key === "blended-roas") return x(v);
     return fmt(ccy, negative ? -v : v);
   };
   return (

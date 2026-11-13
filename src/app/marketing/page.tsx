@@ -1,3 +1,4 @@
+import { AdMetricsGuide } from "../components/ad-metrics-guide";
 import { getReport } from "@/lib/report";
 import { Shell } from "../shell";
 import { RangePicker } from "../components/range-picker";
@@ -21,6 +22,8 @@ export default async function Marketing({ searchParams }: { searchParams: SP }) 
   const M = (n: number) => fmt(ccy, n);
   const be = t.breakEvenRoas;
   const mer = t.adSpend ? t.revenueIncl / t.adSpend : null;
+  const attributed = cur.campaigns.reduce((s, c) => s + c.purchaseValue, 0);
+  const blendedRoas = t.adSpend && attributed ? attributed / t.adSpend : null;
   const short = cur.daily.length < 10;
   const byPlatform = new Map<string, { spend: number; value: number; campaigns: number }>();
   for (const c of cur.campaigns) {
@@ -39,14 +42,16 @@ export default async function Marketing({ searchParams }: { searchParams: SP }) 
         <RangePicker current={range.key} from={range.from} to={range.to} max={today} />
       </header>
 
-      <section className="kpis">
+      <section className="kpis six">
         <Kpi hero label="Ad spend" value={M(t.adSpend)} sub={`${pct(t.netRevenue ? t.adSpend / t.netRevenue : null, 0)} of net revenue`} />
-        <Kpi label="Blended ROAS" value={x(mer)} sub="all revenue ÷ all ad spend" />
+        <Kpi label="MER" value={x(mer)} sub="all store sales ÷ ad spend" />
+        <Kpi label="Blended ROAS" value={x(blendedRoas)} sub="platform-reported sales ÷ ad spend" />
         <Kpi label="Break-even ROAS" value={x(be)} sub="needed to cover product and order costs" />
-        <Kpi label="POAS" value={x(t.poas)} sub="contribution ÷ ad spend" />
+        <Kpi label="POAS" value={x(t.poas)} sub="profit before ads ÷ ad spend" />
         <Kpi label="CAC" value={cur.customers?.known && cur.customers.cac != null ? M(cur.customers.cac) : "–"}
           sub={cur.customers?.known ? `ad spend ÷ ${cur.customers.newCustomers} new customers` : "needs customer access"} />
       </section>
+      <AdMetricsGuide />
 
       {short && <div className="alerts"><span>⚠ Short window: judge campaigns on 10–14 days or more before pausing anything.</span></div>}
 
@@ -87,7 +92,7 @@ export default async function Marketing({ searchParams }: { searchParams: SP }) 
             </tbody>
           </table>
         </div>
-        <p className="note">Platform ROAS uses each platform&apos;s own attribution, and platforms often claim the same sale. Use blended ROAS for overall health, and the break-even line to compare campaigns.</p>
+        <p className="note">Platform ROAS uses each platform&apos;s own attribution, and platforms often claim the same sale. Use MER for overall health, and the break-even line to compare campaigns.</p>
       </div>
     </Shell>
   );

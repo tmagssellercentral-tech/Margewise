@@ -5,6 +5,7 @@ import { ExportLinks } from "./components/export-links";
 import { RangePicker } from "./components/range-picker";
 import { Breakdown, Kpi, TrendChart, fmt, pct, x } from "./components/ui";
 import { CustomersPanel } from "./components/customers-panel";
+import { AdMetricsGuide } from "./components/ad-metrics-guide";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,9 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
   const prevCosts = p ? p.netRevenue - (prevProfit ?? 0) : null;
   const aov = t.orders ? t.revenueIncl / t.orders : 0;
   const mer = t.adSpend ? t.revenueIncl / t.adSpend : null;
+  // What the ad platforms themselves say their ads sold (their attribution).
+  const attributed = cur.campaigns.reduce((s, c) => s + c.purchaseValue, 0);
+  const blendedRoas = t.adSpend && attributed ? attributed / t.adSpend : null;
   const failed = lastSync.filter((s) => s.status === "error").map((s) => pname(s.kind));
   const top = cur.products.slice(0, 5);
 
@@ -74,15 +78,19 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
         </div>
       )}
 
-      <section className="strip">
-        <div title="Sales (incl VAT) divided by ad spend, across all platforms.">
-          <span>ROAS (blended)</span>
+      <section className="strip six">
+        <div title="All store sales (incl VAT) divided by all ad spend, including organic and repeat sales.">
+          <span>MER</span>
           <b>{x(mer)}{mer != null && t.breakEvenRoas != null && (mer >= t.breakEvenRoas
             ? <em className="badge ok">above break-even</em> : <em className="badge bad">below break-even</em>)}</b>
-          <small>sales ÷ ad spend</small>
+          <small>all store sales ÷ ad spend</small>
+        </div>
+        <div title="Sales the ad platforms attribute to their own ads, added up across platforms, divided by all ad spend.">
+          <span>Blended ROAS</span><b>{x(blendedRoas)}</b>
+          <small>{t.adSpend && !attributed ? "no platform-reported sales" : "platform-reported sales ÷ ad spend"}</small>
         </div>
         <div title="The ROAS at which ads exactly pay for themselves after product, payment, courier and packaging costs.">
-          <span>Break-even ROAS</span><b>{x(t.breakEvenRoas)}</b><small>ROAS needed to cover costs</small>
+          <span>Break-even ROAS</span><b>{x(t.breakEvenRoas)}</b><small>MER needed to cover costs</small>
         </div>
         <div title="Profit on ad spend: contribution (after product and order costs) divided by ad spend. Above 1.0 ads make money.">
           <span>POAS</span><b>{x(t.poas)}</b><small>{t.poas != null ? `${cs}${t.poas.toFixed(2)} back per ${cs}1 of ads` : "profit on ad spend"}</small>
@@ -90,6 +98,7 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
         <div title="Profit (after ads, and fixed costs once entered) divided by orders."><span>Profit per order</span><b>{M(t.orders ? profit / t.orders : 0)}</b><small>{hasFixed ? "after fixed costs" : "after ads"}</small></div>
         <div title="What orders earn after product, payment, courier, packaging and return costs, before ads."><span>Contribution before ads</span><b>{M(t.contribution)}</b><small>{pct(t.netRevenue ? t.contribution / t.netRevenue : null, 0)} of revenue</small></div>
       </section>
+      <AdMetricsGuide />
 
       <section className="grid-main">
         <div className="panel">
@@ -129,11 +138,11 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
             const scale = Math.max(mer, t.breakEvenRoas) * 1.25;
             return (
               <>
-                <div className="roasline" aria-label={`Blended ROAS ${x(mer)}, break-even ${x(t.breakEvenRoas)}`}>
+                <div className="roasline" aria-label={`MER ${x(mer)}, break-even ${x(t.breakEvenRoas)}`}>
                   <span className={`fill ${mer >= t.breakEvenRoas ? "ok" : "bad"}`} style={{ width: `${(mer / scale) * 100}%` }} />
                   <span className="mark" style={{ left: `${(t.breakEvenRoas / scale) * 100}%` }} />
                 </div>
-                <div className="roaslabels"><span>Blended ROAS {x(mer)}</span><span>Break-even {x(t.breakEvenRoas)} ▏</span></div>
+                <div className="roaslabels"><span>MER {x(mer)}</span><span>Break-even {x(t.breakEvenRoas)} ▏</span></div>
               </>
             );
           })()}

@@ -21,7 +21,7 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 export async function buildSheet(kind: string, sp: Record<string, string | undefined>): Promise<Sheet> {
   if (kind === "pnl") {
     const { shop, cols } = await getMonthly(sp);
-    const rows = buildPnl(cols.map((c) => ({ period: c.period, total: c.data.total, platforms: c.data.platforms, fixedCosts: c.data.fixedCosts, config: c.data.config })));
+    const rows = buildPnl(cols.map((c) => ({ period: c.period, total: c.data.total, platforms: c.data.platforms, fixedCosts: c.data.fixedCosts, config: c.data.config, attributed: c.data.campaigns.reduce((s, x) => s + x.purchaseValue, 0) })));
     const keys = [...cols.map((c) => c.period.key), "total"];
     const bold = new Set<number>();
     const out = rows.map((r: PnlRow, i) => {
@@ -29,7 +29,7 @@ export async function buildSheet(kind: string, sp: Record<string, string | undef
       const o: Record<string, string | number | null> = { line: r.label };
       keys.forEach((k, j) => {
         const v = r.values.at(j);
-        o[k] = r.kind === "heading" || v == null ? null : r.kind === "ratio" ? v : r.kind === "memo" && r.key === "mer" ? r2(v) : r2(r.negative ? -v : v);
+        o[k] = r.kind === "heading" || v == null ? null : r.kind === "ratio" ? v : r.kind === "memo" && (r.key === "mer" || r.key === "blended-roas") ? r2(v) : r2(r.negative ? -v : v);
       });
       o.kind = r.kind;
       return o;

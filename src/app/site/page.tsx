@@ -5,7 +5,7 @@ export const metadata = { title: "True profit for every Shopify store" };
 const FEATURES = [
   { t: "True profit on every order", d: "Product cost, payment fees, shipping, packaging, returns and VAT or sales tax, worked out order by order, not estimated." },
   { t: "Every ad platform in one place", d: "Meta, Google, TikTok, Pinterest and Snapchat sync automatically. Anything else by CSV. Spend in other currencies is converted daily." },
-  { t: "Know if your ads pay", d: "Blended ROAS against your break-even ROAS, POAS, and every campaign marked above or below the line." },
+  { t: "Know if your ads pay", d: "MER, blended ROAS and POAS against your break-even ROAS, with every campaign marked above or below the line." },
   { t: "A real P&L, every month", d: "Revenue down to net profit with your fixed costs, month by month. Download to Excel for your accountant." },
   { t: "Customers, CAC and LTV", d: "New versus returning customers, cost to acquire each one, repeat purchase rate and lifetime value." },
   { t: "Tax done right, anywhere", d: "Prices with VAT included or sales tax added at checkout. Revenue is always shown without tax, so profit is never overstated." },

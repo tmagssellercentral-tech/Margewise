@@ -363,3 +363,20 @@ select option { background: var(--surface); color: var(--ink); }
 /* Inside the Shopify admin: the admin's left menu replaces Margewise's side menu. */
 body.embedded .shell { display: block; background: var(--bg); }
 body.embedded .side { display: none; }
+
+/* Definitions of the ad figures */
+.guide { margin: -6px 0 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 16px; }
+.guide summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--brand, #0f6b4f); }
+.guide dl { margin: 10px 0 2px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+.guide dt { font-weight: 650; font-size: 13.5px; margin-bottom: 2px; }
+.guide dd { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+@media (max-width: 760px) { .guide dl { grid-template-columns: 1fr; } }
+.strip.six { grid-template-columns: repeat(6, 1fr); }
+@media (max-width: 1180px) and (min-width: 761px) {
+  .strip.six { grid-template-columns: repeat(3, 1fr); }
+  .strip.six div:nth-child(4) { border-left: 0; }
+  .strip.six div:nth-child(n + 4) { border-top: 1px solid var(--line); }
+}
+.kpis.six { grid-template-columns: 1.25fr repeat(5, 1fr); margin-bottom: 14px; }
+@media (max-width: 1180px) and (min-width: 761px) { .kpis.six { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 760px) { .kpis.six { grid-template-columns: repeat(2, 1fr); } }
