@@ -10,7 +10,8 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Shopify-managed install: stores approve these scopes when they install; no OAuth redirect needed.
-scopes = "read_orders,read_all_orders,read_products,read_inventory,read_customers"
+scopes = "read_orders,read_products,read_inventory,read_customers"
+# read_all_orders is added once Shopify approves the request.
 
 [auth]
 redirect_urls = ["https://app.margewise.io/auth/bounce"]
