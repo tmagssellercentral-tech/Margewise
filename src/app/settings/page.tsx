@@ -12,6 +12,7 @@ import { PLATFORMS, isConfigured, platformName } from "@/lib/platforms";
 import { FEE_PRESETS } from "@/lib/fee-presets";
 import { PLANS, PUBLIC_PLANS, planOf, usage } from "@/lib/plans";
 import { UpgradeLink } from "../components/plan";
+import { fmt } from "../components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -51,8 +52,7 @@ export default async function Settings({ searchParams }: { searchParams: SP }) {
   );
 }
 
-const money = (n: number, ccy: string) =>
-  `${ccy} ${n.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = (n: number, ccy: string) => fmt(ccy, n, 2);
 
 async function StoreTab() {
   const shop = await getShop();
@@ -193,7 +193,7 @@ async function FeesTab() {
         <p className="hint">
           Shopify charges an extra fee on orders that aren&apos;t paid through Shopify Payments (Shop Pay included) or a manual method. In the US, Canada and EU it&apos;s
           2% on Basic, 1% on Grow, 0.6% on Advanced and 0.2% on Plus. Shopify bills it in total, so Margewise can&apos;t read it per order. Check
-          <b> Settings → Billing → Transaction fees</b> in Shopify, and enter 0 if you don&apos;t pay it. Shopify Payments isn&apos;t available in South Africa, so check your bill to see whether it applies.
+          <b> Settings → Billing → Transaction fees</b> in Shopify, and enter 0 if you don&apos;t pay it.{shop.country === "ZA" && <> Shopify Payments isn&apos;t available in South Africa, so check your bill to see whether it applies.</>}
         </p>
         <div className="rowform upload">
           <label>% of order total<input name="shopify_txn_fee_pct" type="number" step="0.01" min="0" max="5" defaultValue={+((config.shopifyTxnFeePct ?? 0) * 100).toFixed(2)} /></label>
@@ -254,7 +254,7 @@ async function ShippingTab() {
                   <select name="parcel_size"><option value="standard">Standard</option><option value="bulky">Bulky</option></select>
                   <input name="cost" type="number" step="0.01" placeholder="Cost" />
                   <input name="return_cost" type="number" step="0.01" placeholder="Return cost" />
-                  <input name="courier" placeholder="e.g. The Courier Guy" />
+                  <input name="courier" placeholder="e.g. FedEx" />
                   <button type="submit">Add rule</button>
                 </form>
               </div>

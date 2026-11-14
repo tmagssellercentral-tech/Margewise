@@ -1,9 +1,9 @@
 import { db, getShop } from "@/lib/db";
 import { localDate } from "@/lib/dates";
 import { deleteFixedCost, saveFixedCost } from "../settings/actions";
+import { fmt } from "./ui";
 
-const money = (n: number, ccy: string) =>
-  `${ccy} ${n.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = (n: number, ccy: string) => fmt(ccy, n, 2);
 
 const CATEGORIES = ["salaries", "rent", "software", "accounting", "insurance", "utilities", "marketing (non-ads)", "loan repayments", "other"];
 const FREQS = [["monthly", "Monthly"], ["weekly", "Weekly"], ["yearly", "Yearly"], ["daily", "Daily"], ["once", "Once-off"]];

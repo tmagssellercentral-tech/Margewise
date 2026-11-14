@@ -33,7 +33,7 @@ export default async function Orders({ searchParams }: { searchParams: SP }) {
   ]);
   const byName = new Map(r.results.map((x) => [x.name, x]));
   const qs = range.key === "custom" ? `from=${range.from}&to=${range.to}` : `range=${range.key}`;
-  const fmt = (n: number) => n.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n: number) => n.toLocaleString(shop.currency === "ZAR" ? "en-ZA" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const returns = (orders ?? []).filter((o) => o.return_status !== "none").length;
 
   return (

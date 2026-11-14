@@ -80,7 +80,7 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
           sub={<>{pct(t.netRevenue ? profit / t.netRevenue : null)} margin{!hasFixed && <> · before fixed costs</>}</>} />
         <Kpi label="Net revenue" value={M(t.netRevenue)} delta={change(t.netRevenue, p?.netRevenue)} sub="ex VAT, after refunds" />
         <Kpi label="Total costs" value={M(costs)} delta={change(costs, prevCosts)} goodWhenUp={false} sub={pct(t.netRevenue ? costs / t.netRevenue : null, 0) + " of revenue"} />
-        <Kpi label="Orders" value={t.orders.toLocaleString("en-ZA")} delta={change(t.orders, p?.orders)} sub={`${M(aov)} average order`} />
+        <Kpi label="Orders" value={t.orders.toLocaleString("en-US")} delta={change(t.orders, p?.orders)} sub={`${M(aov)} average order`} />
         <Kpi label="Ad spend" value={M(t.adSpend)} delta={change(t.adSpend, p?.adSpend)} goodWhenUp={false} sub={`${pct(t.netRevenue ? t.adSpend / t.netRevenue : null, 0)} of revenue`} />
       </section>
 
