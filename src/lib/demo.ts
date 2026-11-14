@@ -50,18 +50,40 @@ const orders = (fixture.orders as OrderInput[]).map((o, i) => LISTING ? {
   shippingIncl: m(o.shippingIncl), refundIncl: m(o.refundIncl),
   lines: o.lines.map((l) => ({ ...l, lineTotalIncl: m(l.lineTotalIncl), unitCost: l.unitCost == null ? l.unitCost : m(l.unitCost) })),
 } : o);
-// Readable product names for screenshots ("MultiLevelBench" -> "Multi Level Bench").
-const pretty = (sku: string) => sku
-  .replace(/^F(?=Trampoline)/, "").replace(/Pi$/, "Pink").replace(/Gr$/, "Green").replace(/Bla(?=\()/, "Black ").replace(/0?1$/, "")
-  .replace(/([a-z])([A-Z0-9])/g, "$1 $2").replace(/([0-9])([A-Z])/g, "$1 $2").replace(/\s+/g, " ").trim();
+// Listing mode replaces every real SKU and product name with a generic gym product and a made-up SKU.
+const GENERIC = [
+  "Adjustable Weight Bench", "Dumbbell Rack", "Gym Gloves", "Resistance Band Set", "Kettlebell 16kg", "Pull-Up Bar",
+  "Yoga Mat", "Foam Roller", "Jump Rope", "Ab Wheel", "Hex Dumbbell 10kg", "Barbell 20kg", "Weight Plate 5kg",
+  "Weight Plate 10kg", "Mini Trampoline", "Exercise Bike", "Rowing Machine", "Step Platform", "Medicine Ball 6kg",
+  "Slam Ball 10kg", "Battle Rope", "Lifting Belt", "Wrist Wraps", "Knee Sleeves", "Shaker Bottle", "Gym Bag",
+  "Push-Up Handles", "Dip Station", "Squat Rack", "Bench Press Station", "EZ Curl Bar", "Olympic Collars",
+  "Suspension Trainer", "Balance Board", "Stability Ball", "Adjustable Dumbbells", "Kettlebell 8kg", "Ankle Weights",
+  "Weighted Vest", "Plyo Box", "Agility Ladder", "Speed Cones", "Massage Gun", "Grip Trainer", "Exercise Mat",
+  "Hip Thrust Pad", "Barbell Pad", "Landmine Attachment", "Cable Handles", "Lat Pulldown Bar", "Tricep Rope",
+  "Dumbbell Set 20kg", "Rubber Floor Tiles", "Chalk Bag", "Lifting Straps", "Water Bottle 1L", "Stepper",
+  "Sit-Up Bench", "Ab Roller Pro", "Power Band Heavy", "Power Band Light", "Hand Gripper", "Headband", "Towel",
+];
+const SKU_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const fakeSku = (n: number) => {
+  let x = (n + 1) * 2654435761 >>> 0, out = "";
+  for (let k = 0; k < 6; k++) { out += SKU_ALPHABET[x % SKU_ALPHABET.length]; x = Math.floor(x / SKU_ALPHABET.length) ^ (k * 7919); }
+  return `NW-${out}`;
+};
+const productMap = new Map<string, { sku: string; title: string }>();
+const generic = (sku: string | null | undefined) => {
+  const key = sku ?? "unknown";
+  if (!productMap.has(key)) { const n = productMap.size; productMap.set(key, { sku: fakeSku(n), title: GENERIC[n % GENERIC.length] }); }
+  return productMap.get(key)!;
+};
 const shift = (d: string, days: number) => new Date(Date.parse(d) + days * 864e5).toISOString().slice(0, 10);
 // Listing mode also repeats September as June to August (with some orders dropped) so monthly views aren't empty.
 const listingOrders = !LISTING ? orders : [
   ...orders,
   ...[[-30, 5], [-61, 4], [-91, 3]].flatMap(([days, every]) =>
     orders.filter((_, i) => i % every !== 0).map((o) => ({ ...o, name: `${o.name}-${days}`, localDate: shift(o.localDate, days) }))),
-].map((o) => ({ ...o, lines: o.lines.map((l) => ({ ...l, title: l.sku ? pretty(l.sku) : l.title })) }));
-const all = listingOrders.map((o) => computeOrder(o as OrderInput, config, rules, new Set(fixture.bulky)));
+].map((o) => ({ ...o, lines: o.lines.map((l) => ({ ...l, ...generic(l.sku) })) }));
+const BULKY = new Set(fixture.bulky.map((b) => (LISTING ? generic(b).sku : b)));
+const all = listingOrders.map((o) => computeOrder(o as OrderInput, config, rules, BULKY));
 const revenueByDay = new Map<string, number>();
 for (const r of all) revenueByDay.set(r.localDate, (revenueByDay.get(r.localDate) ?? 0) + r.netRevenue);
 const totalRevenue = [...revenueByDay.values()].reduce((a, b) => a + b, 0);
