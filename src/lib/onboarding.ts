@@ -54,12 +54,13 @@ export async function syncInstalledStores(budgetMs = 200_000) {
 
 /**
  * App Store stores have no live order feed yet, so opening Margewise refreshes the last two days
- * in the background when the last Shopify sync is more than 30 minutes old.
+ * in the background when the last Shopify sync is more than 5 minutes old. Order webhooks
+ * trigger the same refresh as soon as an order is placed, changed or refunded.
  */
-export async function refreshIfStale(shop: Shop) {
+export async function refreshIfStale(shop: Shop, maxAgeMs = 5 * 60_000) {
   const { data } = await db().from("sync_runs").select("started_at").eq("shop_id", shop.id).eq("kind", "shopify")
     .order("started_at", { ascending: false }).limit(1).maybeSingle();
-  if (data && Date.now() - Date.parse(data.started_at) < 30 * 60_000) return null;
+  if (data && Date.now() - Date.parse(data.started_at) < maxAgeMs) return null;
   const today = localDate(new Date(), shop.timezone);
   return syncStore(shop, addDays(today, -2), today, false);
 }

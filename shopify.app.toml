@@ -21,6 +21,10 @@ api_version = "2026-10"
 
   [[webhooks.subscriptions]]
   topics = ["app/uninstalled", "app_subscriptions/update"]
+
+  [[webhooks.subscriptions]]
+  topics = ["orders/create", "orders/updated", "orders/cancelled", "refunds/create"]
+  uri = "https://app.margewise.io/api/webhooks"
   uri = "https://app.margewise.io/api/webhooks"
 
   [[webhooks.subscriptions]]

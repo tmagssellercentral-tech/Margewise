@@ -3,6 +3,7 @@ import { isShopDomain } from "@/lib/session-token";
 import { webhookIsGenuine } from "@/lib/shopify-app";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 /**
  * Every webhook Shopify sends Margewise: app/uninstalled plus the three mandatory privacy
@@ -27,6 +28,21 @@ export async function POST(req: Request) {
   let payload: Record<string, unknown> = {};
   try { payload = JSON.parse(raw); } catch { /* empty body is fine */ }
   const shop = (await db().from("shops").select("id, is_owner, uninstalled_at").eq("myshopify_domain", store).maybeSingle()).data;
+
+  // New, changed or refunded orders: refresh the last two days for that store in the background.
+  if (["orders/create", "orders/updated", "orders/cancelled", "refunds/create"].includes(topic)) {
+    if (shop && !shop.is_owner && !shop.uninstalled_at) {
+      const { after } = await import("next/server");
+      after(async () => {
+        const full = (await db().from("shops").select("*").eq("id", shop.id).single()).data;
+        if (!full) return;
+        const { refreshIfStale } = await import("@/lib/onboarding");
+        await refreshIfStale({ ...full, vat_rate: Number(full.vat_rate) }, 20_000).catch(() => null);
+      });
+    }
+    await db().from("webhook_events").update({ processed_at: new Date().toISOString(), detail: "refresh queued" }).eq("id", id);
+    return new Response("ok");
+  }
   let detail = "";
 
   switch (topic) {
