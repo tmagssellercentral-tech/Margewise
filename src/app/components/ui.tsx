@@ -1,8 +1,14 @@
 // Small presentational pieces shared by the report pages: money formatting, KPI cards with
 // change vs the previous period, and SVG charts rendered on the server.
 
+const SYMBOLS: Record<string, string> = {
+  ZAR: "R", USD: "$", GBP: "£", EUR: "€", AUD: "A$", CAD: "C$", NZD: "NZ$", INR: "₹", JPY: "¥", NGN: "₦", KES: "KSh ",
+};
+/** Currency symbol, or the code and a space when there's no common symbol (e.g. "AED 120"). */
+export const sym = (ccy: string) => SYMBOLS[ccy] ?? `${ccy} `;
+// Rand amounts use South African spacing (R1 234); everything else uses commas ($1,234).
 export const fmt = (ccy: string, n: number, dp = 0) =>
-  `${n < 0 ? "−" : ""}${ccy === "ZAR" ? "R" : ccy + " "}${Math.abs(n).toLocaleString("en-ZA", { minimumFractionDigits: dp, maximumFractionDigits: dp })}`;
+  `${n < 0 ? "−" : ""}${sym(ccy)}${Math.abs(n).toLocaleString(ccy === "ZAR" ? "en-ZA" : "en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp })}`;
 export const pct = (n: number | null, dp = 1) => (n == null || !isFinite(n) ? "–" : `${(n * 100).toFixed(dp)}%`);
 export const x = (n: number | null) => (n == null || !isFinite(n) ? "–" : `${n.toFixed(2)}x`);
 
@@ -29,7 +35,6 @@ export function Kpi({ label, value, delta, goodWhenUp, sub, hero }: {
   );
 }
 
-const sym = (ccy: string) => (ccy === "ZAR" ? "R" : ccy === "USD" ? "$" : ccy === "EUR" ? "€" : ccy === "GBP" ? "£" : ccy + " ");
 /** Short axis labels: R21k, −R300, R1.2m. */
 export function axis(ccy: string, v: number) {
   const a = Math.abs(v), s = v < 0 ? "−" : "";

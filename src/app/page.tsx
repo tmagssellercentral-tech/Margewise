@@ -3,7 +3,7 @@ import { change, getReport } from "@/lib/report";
 import { Shell } from "./shell";
 import { ExportLinks } from "./components/export-links";
 import { RangePicker } from "./components/range-picker";
-import { Breakdown, Kpi, TrendChart, fmt, pct, x } from "./components/ui";
+import { Breakdown, Kpi, TrendChart, fmt, pct, sym, x } from "./components/ui";
 import { CustomersPanel } from "./components/customers-panel";
 import { AdMetricsGuide } from "./components/ad-metrics-guide";
 import { Locked, PlanNotice, UpgradeLink } from "./components/plan";
@@ -25,7 +25,7 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
   const t = cur.total, p = prev?.total;
   const ccy = shop.currency;
   const M = (n: number, dp = 0) => fmt(ccy, n, dp);
-  const cs = ccy === "ZAR" ? "R" : `${ccy} `;
+  const cs = sym(ccy);
 
   const hasFixed = t.fixedCosts > 0;
   const profit = hasFixed ? t.netProfit : t.profitAfterAds;
@@ -165,7 +165,7 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
           <div className="adstats">
             <div><span>Ad spend / revenue</span><b>{pct(t.netRevenue ? t.adSpend / t.netRevenue : null, 0)}</b></div>
             <div><span>Ad cost per order</span><b>{M(t.orders ? t.adSpend / t.orders : 0)}</b></div>
-            <div><span>Profit per {ccy === "ZAR" ? "R" : ccy + " "}1 of ads</span><b>{t.adSpend ? (profit / t.adSpend).toFixed(2) : "–"}</b></div>
+            <div><span>Profit per {sym(ccy)}1 of ads</span><b>{t.adSpend ? (profit / t.adSpend).toFixed(2) : "–"}</b></div>
           </div>
           <p className="note">{mer != null && t.breakEvenRoas != null && (mer >= t.breakEvenRoas ? "Ads are paying for themselves overall." : "Overall, ads cost more than they bring in.")}</p>
         </div>

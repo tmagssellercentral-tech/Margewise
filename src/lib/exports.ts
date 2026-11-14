@@ -125,7 +125,8 @@ export async function toXlsx(s: Sheet): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
   wb.creator = "Margewise";
   const ws = wb.addWorksheet(s.name, { views: [{ state: "frozen", ySplit: 4, xSplit: s.name === "P&L" ? 1 : 0 }] });
-  const money = `"${ccy === "ZAR" ? "R" : ccy + " "}"#,##0.00;[Red]-"${ccy === "ZAR" ? "R" : ccy + " "}"#,##0.00`;
+  const { sym } = await import("@/app/components/ui");
+  const money = `"${sym(ccy)}"#,##0.00;[Red]-"${sym(ccy)}"#,##0.00`;
   ws.addRow([s.title]).font = { bold: true, size: 14 };
   ws.addRow([s.subtitle]).font = { color: { argb: "FF5D6A63" } };
   ws.addRow([]);

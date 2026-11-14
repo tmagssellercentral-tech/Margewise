@@ -59,10 +59,10 @@ export function change(cur: number, prev: number | null | undefined): number | n
 export async function getMonthly(sp: Record<string, string | undefined>) {
   const { choosePeriods } = await import("./pnl");
   if (isDemo()) {
-    const { demoRange, demoShop } = await import("./demo");
+    const { demoRange, demoShop, LISTING } = await import("./demo");
     const today = "2026-09-30";
     const choice = choosePeriods(today, sp);
-    return { shop: demoShop, today, demo: true, choice, cols: choice.periods.map((period) => ({ period, data: demoRange(period.from, period.to) })) };
+    return { shop: demoShop, today, demo: !LISTING, choice, cols: choice.periods.map((period) => ({ period, data: demoRange(period.from, period.to) })) };
   }
   const shop = await getShop();
   const today = localDate(new Date(), shop.timezone);
