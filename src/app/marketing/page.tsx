@@ -51,8 +51,8 @@ export default async function Marketing({ searchParams }: { searchParams: SP }) 
         <Kpi label="Blended ROAS" value={x(blendedRoas)} sub="platform-reported sales ÷ ad spend" />
         <Kpi label="Break-even ROAS" value={x(be)} sub="needed to cover product and order costs" />
         <Kpi label="POAS" value={x(t.poas)} sub="profit before ads ÷ ad spend" />
-        <Kpi label="CAC" value={plan.customerMetrics && cur.customers?.known && cur.customers.cac != null ? M(cur.customers.cac) : "–"}
-          sub={!plan.customerMetrics ? "Growth plan and above" : cur.customers?.known ? `ad spend ÷ ${cur.customers.newCustomers} new customers` : "needs customer access"} />
+        <Kpi label="CAC" value={plan.cac && cur.customers?.known && cur.customers.cac != null ? M(cur.customers.cac) : "–"}
+          sub={!plan.cac ? "Starter plan and above" : cur.customers?.known ? `ad spend ÷ ${cur.customers.newCustomers} new customers` : "needs customer access"} />
       </section>
       <AdMetricsGuide />
 

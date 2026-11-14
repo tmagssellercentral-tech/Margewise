@@ -420,8 +420,8 @@ async function AdsTab() {
 
 const PLAN_POINTS: Record<string, string[]> = {
   free: ["Up to 100 orders a month", "True profit dashboard", "Profit & loss, expenses, exports", "All ad platforms"],
-  starter: ["Up to 500 orders a month", "Everything in Free", "14-day free trial"],
-  growth: ["Up to 1,500 orders a month", "Everything in Starter", "Customers: CAC, repeat rate, LTV", "Campaign profit vs break-even"],
+  starter: ["Up to 500 orders a month", "Everything in Free", "Customer acquisition cost (CAC)", "14-day free trial"],
+  growth: ["Up to 1,500 orders a month", "Everything in Starter", "Repeat purchase rate and LTV", "Campaign profit vs break-even"],
   scale: ["Up to 5,000 orders a month", "Everything in Growth", "Priority support"],
 };
 

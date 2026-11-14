@@ -11,17 +11,18 @@ export interface Plan {
   monthly: number | null; // USD
   annual: number | null; // USD per year (20% off)
   orderLimit: number | null; // orders per calendar month; null = unlimited
-  customerMetrics: boolean; // CAC, repeat rate, LTV
+  cac: boolean; // customer acquisition cost, new vs returning customers
+  customerMetrics: boolean; // repeat rate, LTV, LTV:CAC
   campaignProfit: boolean; // campaign-level table on Marketing
 }
 
 export const PLANS: Record<PlanKey, Plan> = {
-  free: { key: "free", name: "Free", monthly: 0, annual: null, orderLimit: 100, customerMetrics: false, campaignProfit: false },
-  starter: { key: "starter", name: "Starter", monthly: 29, annual: 279, orderLimit: 500, customerMetrics: false, campaignProfit: false },
-  growth: { key: "growth", name: "Growth", monthly: 59, annual: 569, orderLimit: 1500, customerMetrics: true, campaignProfit: true },
-  scale: { key: "scale", name: "Scale", monthly: 119, annual: 1139, orderLimit: 5000, customerMetrics: true, campaignProfit: true },
-  plus: { key: "plus", name: "Plus", monthly: null, annual: null, orderLimit: null, customerMetrics: true, campaignProfit: true },
-  owner: { key: "owner", name: "Owner", monthly: null, annual: null, orderLimit: null, customerMetrics: true, campaignProfit: true },
+  free: { key: "free", name: "Free", monthly: 0, annual: null, orderLimit: 100, cac: false, customerMetrics: false, campaignProfit: false },
+  starter: { key: "starter", name: "Starter", monthly: 29, annual: 279, orderLimit: 500, cac: true, customerMetrics: false, campaignProfit: false },
+  growth: { key: "growth", name: "Growth", monthly: 59, annual: 569, orderLimit: 1500, cac: true, customerMetrics: true, campaignProfit: true },
+  scale: { key: "scale", name: "Scale", monthly: 119, annual: 1139, orderLimit: 5000, cac: true, customerMetrics: true, campaignProfit: true },
+  plus: { key: "plus", name: "Plus", monthly: null, annual: null, orderLimit: null, cac: true, customerMetrics: true, campaignProfit: true },
+  owner: { key: "owner", name: "Owner", monthly: null, annual: null, orderLimit: null, cac: true, customerMetrics: true, campaignProfit: true },
 };
 
 export const PUBLIC_PLANS = [PLANS.free, PLANS.starter, PLANS.growth, PLANS.scale];
@@ -48,6 +49,7 @@ export function planPageUrl(shop: Shop): string | null {
 /** Orders this calendar month (store's own time zone) against the plan's limit. */
 export async function usage(shop: Shop, today: string) {
   const plan = planOf(shop);
+  if (shop.id === "demo") return { plan, orders: 0, limit: plan.orderLimit, over: false, near: false, next: null };
   const { count } = await db().from("orders").select("id", { count: "exact", head: true })
     .eq("shop_id", shop.id).gte("local_date", today.slice(0, 8) + "01").lte("local_date", today);
   const orders = count ?? 0;

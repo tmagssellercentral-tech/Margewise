@@ -76,7 +76,8 @@ export function demoReport(sp: Record<string, string | undefined>, withPrev: boo
   const pFrom = new Date(Date.parse(from) - n * 864e5).toISOString().slice(0, 10);
   const pTo = new Date(Date.parse(from) - 864e5).toISOString().slice(0, 10);
   return {
-    shop: demoShop, today, range: { from, to, key },
+    // ?plan=starter previews what a store on that plan sees.
+    shop: sp.plan ? ({ ...demoShop, is_owner: false, plan: sp.plan } as Shop) : demoShop, today, range: { from, to, key },
     cur: demoRange(from, to),
     prev: withPrev ? demoRange(pFrom, pTo) : null,
     lastSync: [{ kind: "shopify", status: "ok", finished_at: "2026-10-01T03:00:00Z" }, { kind: "meta", status: "ok", finished_at: "2026-10-01T03:00:01Z" }],

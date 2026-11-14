@@ -393,3 +393,9 @@ body.embedded .side { display: none; }
 .plans ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
 @media (max-width: 900px) { .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .callout.over { background: #3a1f1f; border-color: #7a3b3b; } }
+
+.lockedstat { grid-column: span 3; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px; border: 1px dashed var(--line); border-radius: var(--radius); }
+.lockedstat span { font-weight: 600; }
+.lockedstat small { color: var(--muted); }
+.lockedstat .btn { margin-left: auto; }
+@media (max-width: 760px) { .lockedstat { grid-column: 1 / -1; } }

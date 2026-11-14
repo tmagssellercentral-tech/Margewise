@@ -6,7 +6,7 @@ import { RangePicker } from "./components/range-picker";
 import { Breakdown, Kpi, TrendChart, fmt, pct, x } from "./components/ui";
 import { CustomersPanel } from "./components/customers-panel";
 import { AdMetricsGuide } from "./components/ad-metrics-guide";
-import { Locked, PlanNotice } from "./components/plan";
+import { Locked, PlanNotice, UpgradeLink } from "./components/plan";
 import { PLANS, planOf, usage } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
@@ -187,9 +187,9 @@ export default async function Overview({ searchParams }: { searchParams: SP }) {
         </div>
       </section>
 
-      {plan.customerMetrics ? <CustomersPanel c={cur.customers} ccy={ccy} /> : (
-        <Locked shop={shop} title="Customers" needs={PLANS.growth}
-          what="New versus returning customers, customer acquisition cost (CAC), repeat purchase rate and lifetime value (LTV) are on the Growth plan and above." />
+      {plan.cac ? <CustomersPanel c={cur.customers} ccy={ccy} full={plan.customerMetrics} upgrade={<UpgradeLink shop={shop}>Upgrade to Growth</UpgradeLink>} /> : (
+        <Locked shop={shop} title="Customers" needs={PLANS.starter}
+          what="Customer acquisition cost (CAC) and new versus returning customers are on every paid plan. Repeat purchase rate and lifetime value (LTV) are on Growth and above." />
       )}
 
       <p className="foot">
