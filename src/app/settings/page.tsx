@@ -471,7 +471,8 @@ function MetaCard({ shopId, meta, timezone }: { shopId: string; meta: Awaited<Re
         <>
           <p className="hint">
             Sign in with the Facebook profile that manages your ads. Margewise asks for <b>read-only</b> access: it reads daily spend and
-            conversion value per campaign and never changes your ads. The sign-in opens in a new tab.
+            conversion value per campaign and never changes your ads. The sign-in opens in a new tab; when Facebook says you&apos;re
+            connected, click <b>Got it</b> to come back here.
           </p>
           {available
             ? <a className="btn" href={metaLoginUrl(shopId)} target="_blank" rel="noopener">Connect Meta</a>
