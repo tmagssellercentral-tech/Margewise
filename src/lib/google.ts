@@ -66,7 +66,20 @@ async function accessToken(): Promise<string> {
 export const googleConfigured = () =>
   Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_JSON && process.env.GOOGLE_ADS_CUSTOMER_IDS);
 
-const digits = (s: string) => s.replace(/\D/g, "");
+export const digits = (s: string) => s.replace(/\D/g, "");
+
+/**
+ * Headers for a Google Ads API call. Access comes from the Cloud project's access level, so the
+ * developer token is only sent when GOOGLE_ADS_SEND_DEVELOPER_TOKEN=1 (a test-level token would
+ * otherwise block real accounts).
+ */
+export function googleHeaders(token: string, login?: string): Record<string, string> {
+  const h: Record<string, string> = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  if (login) h["login-customer-id"] = digits(login);
+  if (process.env.GOOGLE_ADS_SEND_DEVELOPER_TOKEN === "1" && process.env.GOOGLE_ADS_DEVELOPER_TOKEN) h["developer-token"] = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
+  return h;
+}
+export const GOOGLE_ADS_BASE = () => `https://googleads.googleapis.com/${API_VERSION}`;
 
 interface GaqlRow {
   customer?: { currencyCode?: string };
@@ -80,18 +93,23 @@ interface GaqlRow {
  * Set GOOGLE_ADS_LOGIN_CUSTOMER_ID only when access is through a manager (MCC) account.
  * Each row carries the account's currency; sync converts it to the store's currency.
  */
-export async function fetchGoogleCampaignDays(from: string, to: string): Promise<CampaignDay[]> {
-  const ids = (process.env.GOOGLE_ADS_CUSTOMER_IDS ?? "").split(",").map(digits).filter(Boolean);
-  if (ids.length === 0) throw new Error("GOOGLE_ADS_CUSTOMER_IDS must be set");
-  const login = digits(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID ?? "");
-  const token = await accessToken();
+export interface GoogleCreds {
+  token: string;
+  /** Account id → manager account to sign in through ("" when the user can reach it directly). */
+  accounts: { id: string; login: string }[];
+}
+
+export async function fetchGoogleCampaignDays(from: string, to: string, creds?: GoogleCreds): Promise<CampaignDay[]> {
+  const envLogin = digits(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID ?? "");
+  const accounts = creds?.accounts ?? (process.env.GOOGLE_ADS_CUSTOMER_IDS ?? "").split(",").map(digits).filter(Boolean).map((id) => ({ id, login: envLogin }));
+  if (accounts.length === 0) throw new Error(creds ? "Choose at least one Google Ads account" : "GOOGLE_ADS_CUSTOMER_IDS must be set");
+  const token = creds?.token ?? (await accessToken());
   const query = `SELECT customer.currency_code, campaign.id, campaign.name, segments.date, metrics.cost_micros, metrics.conversions_value
     FROM campaign WHERE segments.date BETWEEN '${from}' AND '${to}' AND metrics.cost_micros > 0`;
 
   const out: CampaignDay[] = [];
-  for (const id of ids) {
-    const headers: Record<string, string> = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
-    if (login) headers["login-customer-id"] = login;
+  for (const { id, login } of accounts) {
+    const headers = googleHeaders(token, login);
     const res = await fetch(`https://googleads.googleapis.com/${API_VERSION}/customers/${id}/googleAds:searchStream`, {
       method: "POST",
       headers,

@@ -7,7 +7,7 @@ import { addDays, localDate } from "./dates";
 import { credentialsFor } from "./shopify-app";
 import { runForStore } from "./shop-context";
 import { recompute, syncAds, syncCustomerHistory, syncShopify } from "./sync";
-import { storeMetaFetcher } from "./meta-connect";
+import { STORE_PLATFORMS, storeFetchers } from "./ad-connect";
 
 export const FIRST_LOAD_DAYS = 60;
 
@@ -18,10 +18,12 @@ async function syncStore(shop: Shop, from: string, to: string, withHistory: bool
     const out: Record<string, unknown> = {};
     const errors: string[] = [];
     try { out.shopify = await syncShopify(shop, new Date(`${from}T00:00:00Z`).toISOString()); } catch (e) { errors.push(`shopify: ${e}`); }
-    try {
-      const pull = await storeMetaFetcher(shop);
-      if (pull) out.meta = await syncAds(shop, "meta", from, to, () => pull(from, to));
-    } catch (e) { errors.push(`meta: ${e}`); }
+    for (const platform of STORE_PLATFORMS) {
+      try {
+        const pull = await storeFetchers[platform](shop);
+        if (pull) out[platform] = await syncAds(shop, platform, from, to, () => pull(from, to));
+      } catch (e) { errors.push(`${platform}: ${e}`); }
+    }
     if (withHistory) {
       try { out.history = await syncCustomerHistory(shop, 120_000); } catch (e) { errors.push(`history: ${e}`); }
     }

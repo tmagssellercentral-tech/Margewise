@@ -14,7 +14,8 @@ import { PLANS, PUBLIC_PLANS, planOf, usage } from "@/lib/plans";
 import { UpgradeLink } from "../components/plan";
 import { fmt } from "../components/ui";
 import { getConnection, metaConnectAvailable, metaLoginUrl } from "@/lib/meta-connect";
-import { chooseMetaAccounts, disconnectMeta, syncMetaNow } from "./actions";
+import { googleConnectAvailable, googleLoginUrl } from "@/lib/google-connect";
+import { chooseAdAccounts, disconnectAds, syncAdsNow } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -343,10 +344,26 @@ async function AdsTab() {
     m.days.add(u.date);
     months.set(k, m);
   }
-  const meta = shop.is_owner === false ? await getConnection(shop.id) : null;
+  const [meta, google] = shop.is_owner === false
+    ? await Promise.all([getConnection(shop.id, "meta"), getConnection(shop.id, "google")])
+    : [null, null];
+  const connected = (p: string) => ((p === "meta" ? meta : p === "google" ? google : null)?.account_ids.length ?? 0) > 0;
   return (
     <>
-      {shop.is_owner === false && <MetaCard shopId={shop.id} meta={meta} timezone={shop.timezone} />}
+      {shop.is_owner === false && (
+        <>
+          <ConnectCard platform="meta" title="Meta (Facebook &amp; Instagram)" conn={meta} timezone={shop.timezone}
+            available={metaConnectAvailable()} loginUrl={metaLoginUrl(shop.id)} who="Facebook profile"
+            intro={<>Sign in with the Facebook profile that manages your ads. Margewise asks for <b>read-only</b> access: it reads daily spend and
+              conversion value per campaign and never changes your ads. The sign-in opens in a new tab; when Facebook says you&apos;re
+              connected, click <b>Got it</b> to come back here.</>}
+            expiryNote="Facebook sign-ins last about 60 days" />
+          <ConnectCard platform="google" title="Google Ads" conn={google} timezone={shop.timezone}
+            available={googleConnectAvailable()} loginUrl={googleLoginUrl(shop.id)} who="Google account"
+            intro={<>Sign in with the Google account that manages your Google Ads. Margewise only reads reports: daily spend and conversion
+              value per campaign. It never creates or changes campaigns, bids or budgets. The sign-in opens in a new tab.</>} />
+        </>
+      )}
       <div className="card">
         <h2>Ad platforms</h2>
         <p className="hint">Connected platforms sync every night and re-check the last 3 days. Spend billed in another currency is converted at that day&apos;s European Central Bank rate.</p>
@@ -356,7 +373,7 @@ async function AdsTab() {
             {PLATFORMS.map((p) => {
               const run = lastRun.get(p.key);
               // Connections set up in the environment belong to the owner store only.
-              const on = p.kind === "connector" && (shop.is_owner !== false ? isConfigured(p) : p.key === "meta" && (meta?.account_ids.length ?? 0) > 0);
+              const on = p.kind === "connector" && (shop.is_owner !== false ? isConfigured(p) : connected(p.key));
               return (
                 <tr key={p.key}>
                   <td>{p.name}</td>
@@ -460,40 +477,41 @@ async function PlanTab() {
   );
 }
 
-function MetaCard({ shopId, meta, timezone }: { shopId: string; meta: Awaited<ReturnType<typeof getConnection>>; timezone: string }) {
-  const available = metaConnectAvailable();
-  const expiresSoon = meta?.token_expires_at && Date.parse(meta.token_expires_at) - Date.now() < 7 * 864e5;
-  const expiry = meta?.token_expires_at ? new Date(meta.token_expires_at).toLocaleDateString("en-GB", { timeZone: timezone, day: "numeric", month: "short", year: "numeric" }) : null;
+function ConnectCard({ platform, title, conn, timezone, available, loginUrl, who, intro, expiryNote }: {
+  platform: string; title: string; conn: Awaited<ReturnType<typeof getConnection>>; timezone: string; available: boolean;
+  loginUrl: string; who: string; intro: React.ReactNode; expiryNote?: string;
+}) {
+  const name = title.replace(/ \(.*\)$/, "").replace("&amp;", "&");
+  const expiresSoon = conn?.token_expires_at && Date.parse(conn.token_expires_at) - Date.now() < 7 * 864e5;
+  const expiry = conn?.token_expires_at ? new Date(conn.token_expires_at).toLocaleDateString("en-GB", { timeZone: timezone, day: "numeric", month: "short", year: "numeric" }) : null;
+  const hidden = <input type="hidden" name="platform" value={platform} />;
   return (
     <div className="card form">
-      <h2>Meta (Facebook &amp; Instagram)</h2>
-      {!meta ? (
+      <h2 dangerouslySetInnerHTML={{ __html: title }} />
+      {!conn ? (
         <>
-          <p className="hint">
-            Sign in with the Facebook profile that manages your ads. Margewise asks for <b>read-only</b> access: it reads daily spend and
-            conversion value per campaign and never changes your ads. The sign-in opens in a new tab; when Facebook says you&apos;re
-            connected, click <b>Got it</b> to come back here.
-          </p>
+          <p className="hint">{intro}</p>
           {available
-            ? <a className="btn" href={metaLoginUrl(shopId)} target="_blank" rel="noopener">Connect Meta</a>
-            : <p className="hint">Meta connection is being set up. Until then, upload Meta spend as CSV below.</p>}
+            ? <a className="btn" href={loginUrl} target="_blank" rel="noopener">Connect {name}</a>
+            : <p className="hint">{name} connection is being set up. Until then, upload {name} spend as CSV below.</p>}
         </>
       ) : (
         <>
           <p className="hint">
-            Connected{meta.connected_as ? <> as <b>{meta.connected_as}</b></> : null}.
-            {expiry && <> Facebook sign-ins last about 60 days; this one runs until <b>{expiry}</b>{expiresSoon ? ", so reconnect soon" : ""}.</>}
+            Connected{conn.connected_as ? <> as <b>{conn.connected_as}</b></> : null}.
+            {expiry && expiryNote && <> {expiryNote}; this one runs until <b>{expiry}</b>{expiresSoon ? ", so reconnect soon" : ""}.</>}
           </p>
-          {meta.available_accounts.length === 0 ? (
-            <p className="hint">This Facebook profile has no ad accounts. Disconnect and sign in with the profile that manages your ads.</p>
+          {conn.available_accounts.length === 0 ? (
+            <p className="hint">This {who} has no ad accounts. Disconnect and sign in with the {who} that manages your ads.</p>
           ) : (
-            <form action={chooseMetaAccounts}>
+            <form action={chooseAdAccounts}>
+              {hidden}
               <p className="hint">Choose the ad accounts that advertise this store:</p>
               <div className="checks">
-                {meta.available_accounts.map((a) => (
+                {conn.available_accounts.map((a) => (
                   <label key={a.id} className="check">
-                    <input type="checkbox" name="account" value={a.id} defaultChecked={meta.account_ids.includes(a.id)} />
-                    {a.name} <span className="hint">({a.id} · {a.currency}{a.active ? "" : " · inactive"})</span>
+                    <input type="checkbox" name="account" value={a.id} defaultChecked={conn.account_ids.includes(a.id)} />
+                    {a.name} <span className="hint">({a.id}{a.currency ? ` · ${a.currency}` : ""}{a.active ? "" : " · inactive"})</span>
                   </label>
                 ))}
               </div>
@@ -501,9 +519,9 @@ function MetaCard({ shopId, meta, timezone }: { shopId: string; meta: Awaited<Re
             </form>
           )}
           <div className="rowform">
-            {meta.account_ids.length > 0 && <form action={syncMetaNow}><button type="submit" className="secondary">Sync Meta now</button></form>}
-            <a className="btn secondary" href={metaLoginUrl(shopId)} target="_blank" rel="noopener">Reconnect</a>
-            <form action={disconnectMeta}><button type="submit" className="danger">Disconnect</button></form>
+            {conn.account_ids.length > 0 && <form action={syncAdsNow}>{hidden}<button type="submit" className="secondary">Sync {name} now</button></form>}
+            <a className="btn secondary" href={loginUrl} target="_blank" rel="noopener">Reconnect</a>
+            <form action={disconnectAds}>{hidden}<button type="submit" className="danger">Disconnect</button></form>
           </div>
           <p className="hint">Disconnecting deletes the stored sign-in at once. Spend already loaded stays in your reports.</p>
         </>
