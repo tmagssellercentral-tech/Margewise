@@ -23,6 +23,8 @@ export async function GET(req: Request) {
     return page("Google Ads connected", msg, back);
   } catch (e) {
     console.error("google connect", e);
+    if (String(e).includes("NOT_APPROVED") || String(e).includes("NO_ACCOUNTS_READABLE"))
+      return page("Google Ads wasn't connected", "Google didn't let Margewise read these Google Ads accounts yet. Please try again later, or email support@margewise.io.", back);
     if (String(e).includes("NO_SCOPE"))
       return page("Google Ads wasn't connected", "Please tick the box that allows Margewise to see your Google Ads data, then try again.", back);
     return page("Google Ads wasn't connected", "Something went wrong while connecting. Please try again, or email support@margewise.io.", back);

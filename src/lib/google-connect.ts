@@ -82,13 +82,15 @@ export async function listGoogleAccounts(token: string): Promise<GoogleAccount[]
   if (!res.ok) throw new Error(`Google Ads ${res.status}: ${JSON.stringify(body).slice(0, 300)}`);
   const roots = ((body.resourceNames ?? []) as string[]).map((r) => digits(r));
   const found = new Map<string, GoogleAccount>();
+  const errors: string[] = [];
   for (const root of roots) {
     let rows: ClientRow[];
     try {
       rows = await gaql<ClientRow>(token, root, root,
         "SELECT customer_client.id, customer_client.descriptive_name, customer_client.currency_code, customer_client.manager, customer_client.status, customer_client.level FROM customer_client WHERE customer_client.level <= 1");
-    } catch {
-      continue; // e.g. a cancelled or suspended account; skip it rather than fail the whole sign-in
+    } catch (e) {
+      errors.push(String(e)); // e.g. a cancelled or suspended account; skip it rather than fail the whole sign-in
+      continue;
     }
     for (const r of rows) {
       const c = r.customerClient;
@@ -102,6 +104,10 @@ export async function listGoogleAccounts(token: string): Promise<GoogleAccount[]
         active: c.status === "ENABLED", login: direct ? "" : root,
       });
     }
+  }
+  if (found.size === 0 && errors.length) {
+    console.error("google accounts", errors);
+    throw new Error(`NO_ACCOUNTS_READABLE ${errors[0].slice(0, 300)}`);
   }
   return [...found.values()].sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name));
 }
