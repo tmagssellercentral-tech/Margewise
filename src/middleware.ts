@@ -24,10 +24,10 @@ export async function middleware(req: NextRequest) {
     url.pathname = path === "/" ? "/site" : `/site${path}`;
     return NextResponse.rewrite(url, { request: { headers } });
   }
-  // The website pages are public on any host (useful for previews).
-  if (path === "/site" || path.startsWith("/site/")) return NextResponse.next({ request: { headers } });
+  // The website pages are public on any host (useful for previews), but only margewise.io is indexed.
+  if (path === "/site" || path.startsWith("/site/")) return noindex(NextResponse.next({ request: { headers } }));
 
-  if (EMBEDDED_HOSTS.has(host)) return embedded(req, headers);
+  if (EMBEDDED_HOSTS.has(host)) return noindex(await embedded(req, headers));
 
   const user = process.env.DASHBOARD_USER;
   const pass = process.env.DASHBOARD_PASSWORD;
@@ -36,12 +36,18 @@ export async function middleware(req: NextRequest) {
   const [scheme, encoded] = header.split(" ");
   if (scheme === "Basic" && encoded) {
     const [u, ...rest] = atob(encoded).split(":");
-    if (u === user && rest.join(":") === pass) return NextResponse.next({ request: { headers } });
+    if (u === user && rest.join(":") === pass) return noindex(NextResponse.next({ request: { headers } }));
   }
   return new NextResponse("Authentication required", {
     status: 401,
     headers: { "WWW-Authenticate": 'Basic realm="Margewise", charset="UTF-8"' },
   });
+}
+
+/** Keep search engines to margewise.io: the app and preview hosts are never indexed. */
+function noindex(res: NextResponse) {
+  res.headers.set("X-Robots-Tag", "noindex, nofollow");
+  return res;
 }
 
 /** Only the store's own admin may frame the app. */

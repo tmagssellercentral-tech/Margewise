@@ -1,6 +1,7 @@
 import { COMPANY, SUPPORT } from "../brand";
+import { pageMeta } from "../seo";
 
-export const metadata = { title: "Terms of service" };
+export const metadata = pageMeta("/terms", "Terms of service", "The terms for using Margewise, the profit analytics app for Shopify stores.");
 
 const UPDATED = "13 November 2026";
 

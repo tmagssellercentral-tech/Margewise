@@ -1,6 +1,7 @@
 import { COMPANY, SUPPORT } from "../brand";
+import { pageMeta } from "../seo";
 
-export const metadata = { title: "Support" };
+export const metadata = pageMeta("/support", "Support", "Get help with Margewise, the profit app for Shopify stores. Email support@margewise.io and a real person replies, usually within one business day.");
 
 export default function Support() {
   return (

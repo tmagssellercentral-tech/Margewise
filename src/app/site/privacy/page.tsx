@@ -1,6 +1,7 @@
 import { COMPANY, SUPPORT } from "../brand";
+import { pageMeta } from "../seo";
 
-export const metadata = { title: "Privacy policy" };
+export const metadata = pageMeta("/privacy", "Privacy policy", "How Margewise collects, uses, stores and deletes Shopify store and advertising data.");
 
 const UPDATED = "13 November 2026";
 

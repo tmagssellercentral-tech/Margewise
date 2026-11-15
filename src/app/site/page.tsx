@@ -1,77 +1,191 @@
-import { SUPPORT } from "./brand";
+import Link from "next/link";
+import { cta, SITE } from "./brand";
+import { FAQ, SOLUTIONS } from "./content";
+import { PLAN_CARDS } from "./plan-data";
+import { Plans } from "./plans";
+import { SolutionTabs } from "./solution-tabs";
+import { faqLd, JsonLd, pageMeta } from "./seo";
 
-export const metadata = { title: "True profit for every Shopify store" };
+export const metadata = pageMeta(
+  "/",
+  "Margewise: true profit analytics for Shopify stores",
+  "See your Shopify store's real net profit after product costs, payment fees, shipping, returns, tax and Meta and Google ad spend. MER, ROAS and break-even ROAS on every campaign. Free up to 100 orders a month.",
+  true,
+);
 
-const FEATURES = [
-  { t: "True profit on every order", d: "Product cost, payment fees, shipping, packaging, returns and VAT or sales tax, worked out order by order, not estimated." },
-  { t: "Every ad platform in one place", d: "Meta, Google, TikTok, Pinterest and Snapchat sync automatically. Anything else by CSV. Spend in other currencies is converted daily." },
-  { t: "Know if your ads pay", d: "MER, blended ROAS and POAS against your break-even ROAS, with every campaign marked above or below the line." },
-  { t: "A real P&L, every month", d: "Revenue down to net profit with your fixed costs, month by month. Download to Excel for your accountant." },
-  { t: "Customers, CAC and LTV", d: "New versus returning customers, cost to acquire each one, repeat purchase rate and lifetime value." },
-  { t: "Tax done right, anywhere", d: "Prices with VAT included or sales tax added at checkout. Revenue is always shown without tax, so profit is never overstated." },
+// One illustrative order, costed line by line. Widths are each amount as a share of the sale.
+const ORDER = { total: 104, lines: [["VAT (20%)", 17.33], ["Product cost", 36.4], ["Ads, this order's share", 20.8], ["Courier", 9.5], ["Payment fees", 2.18], ["Packaging", 1.04]] as [string, number][] };
+const kept = ORDER.total - ORDER.lines.reduce((s, [, v]) => s + v, 0);
+const gbp = (n: number) => `£${n.toFixed(2)}`;
+
+const COSTS = [
+  ["Product cost", "Cost of goods", "The cost per item from Shopify, or your own per SKU. Products without a cost are flagged."],
+  ["Payment fees", "Gateways", "Shopify Payments' actual fee on each order, and published rates for PayPal, Mollie, PayFast, Paystack, Razorpay and more."],
+  ["Shipping", "Couriers", "What the courier charges by destination and parcel size, or the exact amount from your courier's invoice."],
+  ["Returns & packaging", "Order costs", "Return shipping, handling and packaging per order, so refunds show their real cost."],
+  ["Tax", "VAT and sales tax", "Removed from revenue whether your prices include VAT or tax is added at checkout."],
+  ["Ads & overheads", "Marketing and fixed costs", "Daily spend from Meta and Google, CSV for any other channel, plus rent, salaries and software."],
 ];
 
-const MARKETS = [
-  ["Payment fees", "Actual Shopify Payments fees, plus ready-made rates for PayPal, Mollie, Klarna and local gateways such as PayFast, Peach, Ozow, Paystack and Razorpay."],
-  ["Shipping", "Courier cost by destination and parcel size, or upload your courier's invoice for the exact cost of each order."],
-  ["Currencies", "Store and ad accounts in different currencies are reconciled at each day's European Central Bank rate."],
+const FORMULAS = [
+  ["MER", "Store sales ÷ ad spend", "Every sale your store made against every rand, dollar or pound on ads. The number platforms can't inflate."],
+  ["Blended ROAS", "Platform-reported sales ÷ ad spend", "What Meta, Google and the rest claim, added up. Compare it with MER to see how much they double-count."],
+  ["Break-even ROAS", "Revenue ÷ profit before ads", "The ROAS you need just to cover product and order costs, from your own numbers, not an industry average."],
+  ["POAS", "Profit before ads ÷ ad spend", "Profit returned for every unit of ad spend. Above 1, your ads paid for themselves."],
 ];
 
 export default function Home() {
   return (
     <main>
-      <section className="s-hero">
-        <div>
-          <p className="s-eyebrow">For Shopify stores</p>
-          <h1>Know what you actually keep from every sale.</h1>
-          <p className="s-lead">
-            Margewise turns your Shopify orders, product costs and ad spend into one honest number: profit after every cost. Built by an
-            ecommerce operator and chartered accountant, for founders who want to scale what&apos;s profitable, not just what sells.
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "Margewise",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web, Shopify",
+        url: SITE,
+        description: "True profit analytics for Shopify stores: net profit after every cost, ad performance against break-even ROAS, product profit, P&L, CAC and LTV.",
+        offers: PLAN_CARDS.map((p) => ({ "@type": "Offer", name: p.name, price: p.monthly, priceCurrency: "USD" })),
+      }} />
+      <JsonLd data={faqLd(FAQ)} />
+
+      <section className="hero">
+        <div className="wrap">
+          <div>
+            <h1>Sales are vanity. Know what you keep.</h1>
+            <p className="lead">
+              Margewise is the Shopify profit app that costs every order as it happens: product cost, payment fees, shipping, returns,
+              tax and ad spend. One honest number, and every ad judged against your break-even.
+            </p>
+            <div className="ctas">
+              <a className="btn primary" href={cta.href}>{cta.label}</a>
+              <Link className="btn ghost" href="/pricing">See pricing</Link>
+            </div>
+            <ul className="facts">
+              <li>Free up to 100 orders a month</li>
+              <li>14-day free trial on paid plans</li>
+              <li>Read-only access</li>
+              <li>Any currency</li>
+            </ul>
+          </div>
+          <div className="ledger" aria-label={`Example: a ${gbp(ORDER.total)} order leaves ${gbp(kept)} of profit after costs`}>
+            <header><b>Order #1042</b><span>3 items, paid by card</span></header>
+            <ol>
+              <li style={{ ["--i" as string]: 0 }}>
+                <span>Sale</span><span className="amt num">{gbp(ORDER.total)}</span><i style={{ ["--w" as string]: "100%" }} />
+              </li>
+              {ORDER.lines.map(([label, v], k) => (
+                <li key={label} style={{ ["--i" as string]: k + 1 }}>
+                  <span>{label}</span><span className="amt num">−{gbp(v)}</span><i style={{ ["--w" as string]: `${(v / ORDER.total) * 100}%` }} />
+                </li>
+              ))}
+            </ol>
+            <div className="kept" style={{ ["--i" as string]: ORDER.lines.length + 1 }}>
+              <span>What you keep</span>
+              <div><b className="num">{gbp(kept)}</b><small>{((kept / ORDER.total) * 100).toFixed(1)}% of the sale</small></div>
+            </div>
+            <p className="note">Illustrative order. Margewise does this for every order in your store.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="showcase" aria-label="The Margewise dashboard">
+        <div className="wrap">
+          <div className="shot">
+            <div className="bar" aria-hidden="true"><i /><i /><i /></div>
+            <img src="/site/overview.webp" alt="Margewise overview: net profit, revenue, costs, orders, ad spend, MER and break-even ROAS for a demo store" width={1600} height={900} fetchPriority="high" />
+          </div>
+          <p className="cap">The Margewise overview, shown with a demo store.</p>
+        </div>
+      </section>
+
+      <section className="sec">
+        <div className="wrap">
+          <div className="sec-head">
+            <h2>Everything between revenue and profit</h2>
+            <p className="sub">Most dashboards stop at sales or ROAS. Margewise follows each order to the bottom line, then shows you where the money went.</p>
+          </div>
+          <SolutionTabs items={SOLUTIONS} />
+        </div>
+      </section>
+
+      <section className="sec white">
+        <div className="wrap">
+          <div className="sec-head">
+            <h2>The costs other dashboards guess</h2>
+            <p className="sub">Averages hide the orders that lose money. Margewise costs each one with what it actually cost you.</p>
+          </div>
+          <div className="costs">
+            {COSTS.map(([t, k, d]) => (
+              <div className="cost" key={t}><p className="k">{k}</p><h3>{t}</h3><p>{d}</p></div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="sec dark">
+        <div className="wrap">
+          <div className="sec-head">
+            <h2>Four numbers that say whether your ads pay</h2>
+            <p className="sub">Defined plainly, worked out from your own costs, and shown for every ad platform.</p>
+          </div>
+          <div className="formulas">
+            {FORMULAS.map(([t, eq, d]) => (
+              <div className="formula" key={t}><h3>{t}</h3><p className="eq">{eq}</p><p>{d}</p></div>
+            ))}
+          </div>
+          <p style={{ marginTop: 32 }}>
+            <Link className="btn mint" href="/tools/break-even-roas-calculator">Work out your break-even ROAS</Link>
           </p>
-          <div className="s-ctas">
-            <a className="s-btn big" href={`mailto:${SUPPORT}?subject=Margewise%20early%20access`}>Get early access</a>
-            <span>Coming soon to the Shopify App Store</span>
-          </div>
-        </div>
-        <div className="s-mock" aria-label="Illustration of the Margewise dashboard">
-          <div className="m-card hero"><span>Net profit</span><b>$18,420</b><em>▲ 12.4% vs last month</em></div>
-          <div className="m-row">
-            <div className="m-card"><span>Revenue</span><b>$142,900</b></div>
-            <div className="m-card"><span>Ad spend</span><b>$31,200</b></div>
-          </div>
-          <div className="m-row">
-            <div className="m-card"><span>ROAS</span><b>3.42x</b><em className="ok">above break-even 2.6x</em></div>
-            <div className="m-card"><span>CAC</span><b>$38</b><em>LTV : CAC 3.1x</em></div>
-          </div>
-          <p className="m-note">Illustrative figures</p>
         </div>
       </section>
 
-      <section className="s-section" id="features">
-        <h2>Everything between revenue and profit</h2>
-        <p className="s-sub">Most dashboards stop at sales or ROAS. Margewise follows every rand, dollar and euro to the bottom line.</p>
-        <div className="s-grid">
-          {FEATURES.map((f) => (
-            <div key={f.t} className="s-feature"><h3>{f.t}</h3><p>{f.d}</p></div>
-          ))}
+      <section className="sec">
+        <div className="wrap founder">
+          <div>
+            <blockquote>Built by a chartered accountant who runs his own Shopify brand.</blockquote>
+            <p className="who">Margewise started as the profit report for one store, because Shopify&apos;s sales figures and the bank balance never matched. Now it does the same for yours.</p>
+          </div>
+          <ul className="trust">
+            <li><b>Built on accounting, not estimates</b><span>Revenue without tax, refunds deducted, costs matched to the order they belong to. The same logic your accountant uses.</span></li>
+            <li><b>Read-only, always</b><span>Margewise reads your orders and ad reports. It can&apos;t change your store or your ads.</span></li>
+            <li><b>Your customers stay private</b><span>No customer names, emails or addresses are stored. Uninstall and your data is deleted.</span></li>
+            <li><b>Made for every market</b><span>Local payment gateways, couriers, VAT and daily currency conversion for stores far beyond the US.</span></li>
+          </ul>
         </div>
       </section>
 
-      <section className="s-section alt">
-        <h2>Accurate wherever you sell</h2>
-        <p className="s-sub">Stores in the US, UK and Europe get everything they expect. Stores in Africa, the Middle East and other fast-growing markets get the local detail most profit apps leave out.</p>
-        <div className="s-grid three">
-          {MARKETS.map(([t, d]) => (
-            <div key={t} className="s-feature"><h3>{t}</h3><p>{d}</p></div>
-          ))}
+      <section className="sec white" id="pricing">
+        <div className="wrap">
+          <div className="sec-head">
+            <h2>Priced by orders, not by features</h2>
+            <p className="sub">Start free. Upgrade when your store grows. Billed through Shopify with your other app charges.</p>
+          </div>
+          <Plans plans={PLAN_CARDS} ctaHref={cta.href} ctaLabel="Start 14-day trial" />
+          <p className="plans-note">Prices in US dollars. <Link className="link" href="/pricing">Compare plans in detail</Link></p>
         </div>
       </section>
 
-      <section className="s-section cta">
-        <h2>Be one of the first stores on Margewise</h2>
-        <p className="s-sub">We&apos;re onboarding a small group of brands before the App Store launch. Tell us about your store and we&apos;ll be in touch.</p>
-        <a className="s-btn big" href={`mailto:${SUPPORT}?subject=Margewise%20early%20access`}>Email {SUPPORT}</a>
+      <section className="sec">
+        <div className="wrap">
+          <div className="sec-head"><h2>Questions</h2></div>
+          <div className="faq">
+            {FAQ.map((f) => <details key={f.q}><summary>{f.q}</summary><p>{f.a}</p></details>)}
+          </div>
+        </div>
       </section>
+
+      <div className="band-wrap">
+        <div className="wrap">
+          <div className="band">
+            <div>
+              <h2>See your real profit this week</h2>
+              <p>Install in a minute. Your last 60 days of orders load straight away.</p>
+            </div>
+            <a className="btn mint" href={cta.href}>{cta.label}</a>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
