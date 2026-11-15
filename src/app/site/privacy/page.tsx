@@ -40,7 +40,7 @@ export default function Privacy() {
 
       <h2>Where it is stored and who processes it</h2>
       <ul>
-        <li><b>Supabase</b> (database), hosted in Frankfurt, Germany.</li>
+        <li><b>Supabase</b> (database), hosted in Frankfurt, Germany. Data is encrypted at rest.</li>
         <li><b>Vercel</b> (application hosting).</li>
         <li><b>Shopify</b> and the advertising platforms the merchant connects, as the sources of the data.</li>
       </ul>
@@ -51,6 +51,14 @@ export default function Privacy() {
         For as long as Margewise is installed. When a merchant uninstalls the app, Shopify notifies us and we delete that store&apos;s data within
         48 hours of Shopify&apos;s deletion request. Merchants can ask us to delete their data at any time by emailing {SUPPORT}.
       </p>
+
+      <h2 id="data-deletion">Deleting your data, including Meta and other ad account data</h2>
+      <p>You can remove the data Margewise holds at any time, in any of these ways:</p>
+      <ul>
+        <li><b>Disconnect an ad account:</b> in Margewise, go to Settings → Ad platforms and click Disconnect. We delete the stored access token at once and stop reading that account. You can also remove Margewise from your Facebook or Meta Business settings under Business integrations; we then lose access immediately.</li>
+        <li><b>Delete everything:</b> uninstall Margewise from your Shopify admin. We delete all of the store&apos;s data, including ad spend and campaign data, within 48 hours of Shopify&apos;s deletion request.</li>
+        <li><b>Ask us:</b> email {SUPPORT} from the store owner&apos;s email address and we delete the requested data within 30 days and confirm in writing.</li>
+      </ul>
 
       <h2>Requests from shoppers</h2>
       <p>
