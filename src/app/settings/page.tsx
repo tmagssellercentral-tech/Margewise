@@ -13,6 +13,8 @@ import { FEE_PRESETS } from "@/lib/fee-presets";
 import { PLANS, PUBLIC_PLANS, planOf, usage } from "@/lib/plans";
 import { UpgradeLink } from "../components/plan";
 import { fmt } from "../components/ui";
+import { getConnection, metaConnectAvailable, metaLoginUrl } from "@/lib/meta-connect";
+import { chooseMetaAccounts, disconnectMeta, syncMetaNow } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -341,8 +343,10 @@ async function AdsTab() {
     m.days.add(u.date);
     months.set(k, m);
   }
+  const meta = shop.is_owner === false ? await getConnection(shop.id) : null;
   return (
     <>
+      {shop.is_owner === false && <MetaCard shopId={shop.id} meta={meta} timezone={shop.timezone} />}
       <div className="card">
         <h2>Ad platforms</h2>
         <p className="hint">Connected platforms sync every night and re-check the last 3 days. Spend billed in another currency is converted at that day&apos;s European Central Bank rate.</p>
@@ -352,7 +356,7 @@ async function AdsTab() {
             {PLATFORMS.map((p) => {
               const run = lastRun.get(p.key);
               // Connections set up in the environment belong to the owner store only.
-              const on = p.kind === "connector" && shop.is_owner !== false && isConfigured(p);
+              const on = p.kind === "connector" && (shop.is_owner !== false ? isConfigured(p) : p.key === "meta" && (meta?.account_ids.length ?? 0) > 0);
               return (
                 <tr key={p.key}>
                   <td>{p.name}</td>
@@ -452,6 +456,57 @@ async function PlanTab() {
       </div>
       <p className="hint">More than {PLANS.scale.orderLimit!.toLocaleString("en-US")} orders a month? Email support@margewise.io about the Plus plan. Prices in US dollars, billed by Shopify with your store&apos;s other charges.</p>
       <UpgradeLink shop={shop}>Change plan</UpgradeLink>
+    </div>
+  );
+}
+
+function MetaCard({ shopId, meta, timezone }: { shopId: string; meta: Awaited<ReturnType<typeof getConnection>>; timezone: string }) {
+  const available = metaConnectAvailable();
+  const expiresSoon = meta?.token_expires_at && Date.parse(meta.token_expires_at) - Date.now() < 7 * 864e5;
+  const expiry = meta?.token_expires_at ? new Date(meta.token_expires_at).toLocaleDateString("en-GB", { timeZone: timezone, day: "numeric", month: "short", year: "numeric" }) : null;
+  return (
+    <div className="card form">
+      <h2>Meta (Facebook &amp; Instagram)</h2>
+      {!meta ? (
+        <>
+          <p className="hint">
+            Sign in with the Facebook profile that manages your ads. Margewise asks for <b>read-only</b> access: it reads daily spend and
+            conversion value per campaign and never changes your ads. The sign-in opens in a new tab.
+          </p>
+          {available
+            ? <a className="btn" href={metaLoginUrl(shopId)} target="_blank" rel="noopener">Connect Meta</a>
+            : <p className="hint">Meta connection is being set up. Until then, upload Meta spend as CSV below.</p>}
+        </>
+      ) : (
+        <>
+          <p className="hint">
+            Connected{meta.connected_as ? <> as <b>{meta.connected_as}</b></> : null}.
+            {expiry && <> Facebook sign-ins last about 60 days; this one runs until <b>{expiry}</b>{expiresSoon ? ", so reconnect soon" : ""}.</>}
+          </p>
+          {meta.available_accounts.length === 0 ? (
+            <p className="hint">This Facebook profile has no ad accounts. Disconnect and sign in with the profile that manages your ads.</p>
+          ) : (
+            <form action={chooseMetaAccounts}>
+              <p className="hint">Choose the ad accounts that advertise this store:</p>
+              <div className="checks">
+                {meta.available_accounts.map((a) => (
+                  <label key={a.id} className="check">
+                    <input type="checkbox" name="account" value={a.id} defaultChecked={meta.account_ids.includes(a.id)} />
+                    {a.name} <span className="hint">({a.id} · {a.currency}{a.active ? "" : " · inactive"})</span>
+                  </label>
+                ))}
+              </div>
+              <button type="submit">Save and load spend</button>
+            </form>
+          )}
+          <div className="rowform">
+            {meta.account_ids.length > 0 && <form action={syncMetaNow}><button type="submit" className="secondary">Sync Meta now</button></form>}
+            <a className="btn secondary" href={metaLoginUrl(shopId)} target="_blank" rel="noopener">Reconnect</a>
+            <form action={disconnectMeta}><button type="submit" className="danger">Disconnect</button></form>
+          </div>
+          <p className="hint">Disconnecting deletes the stored sign-in at once. Spend already loaded stays in your reports.</p>
+        </>
+      )}
     </div>
   );
 }

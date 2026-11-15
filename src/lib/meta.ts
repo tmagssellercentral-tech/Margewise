@@ -31,10 +31,14 @@ function purchaseValue(row: InsightRow): number {
   return 0;
 }
 
-export async function fetchCampaignDays(from: string, to: string): Promise<CampaignDay[]> {
-  const token = process.env.META_ACCESS_TOKEN;
-  const accounts = (process.env.META_AD_ACCOUNT_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  if (!token || accounts.length === 0) throw new Error("META_ACCESS_TOKEN and META_AD_ACCOUNT_IDS must be set");
+/**
+ * Daily campaign rows for the given ad accounts. With no credentials it uses the owner store's
+ * environment settings; App Store stores pass the token and accounts from their own sign-in.
+ */
+export async function fetchCampaignDays(from: string, to: string, creds?: { token: string; accounts: string[] }): Promise<CampaignDay[]> {
+  const token = creds?.token ?? process.env.META_ACCESS_TOKEN;
+  const accounts = creds?.accounts ?? (process.env.META_AD_ACCOUNT_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (!token || accounts.length === 0) throw new Error(creds ? "No Meta ad account selected" : "META_ACCESS_TOKEN and META_AD_ACCOUNT_IDS must be set");
 
   const out: CampaignDay[] = [];
   for (const acct of accounts) {

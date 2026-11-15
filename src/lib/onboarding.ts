@@ -1,12 +1,13 @@
-// Data loading for stores that installed Margewise from the App Store. They sync Shopify only:
-// the owner's ad connections come from the environment and must never be applied to them.
-// (Per-store ad connections arrive with in-app sign-in to each ad platform.)
+// Data loading for stores that installed Margewise from the App Store: Shopify orders, plus ad
+// spend from the platforms the store itself signed in to. The owner's environment-based ad
+// connections are never applied to them.
 
 import { db, type Shop } from "./db";
 import { addDays, localDate } from "./dates";
 import { credentialsFor } from "./shopify-app";
 import { runForStore } from "./shop-context";
-import { recompute, syncCustomerHistory, syncShopify } from "./sync";
+import { recompute, syncAds, syncCustomerHistory, syncShopify } from "./sync";
+import { storeMetaFetcher } from "./meta-connect";
 
 export const FIRST_LOAD_DAYS = 60;
 
@@ -17,6 +18,10 @@ async function syncStore(shop: Shop, from: string, to: string, withHistory: bool
     const out: Record<string, unknown> = {};
     const errors: string[] = [];
     try { out.shopify = await syncShopify(shop, new Date(`${from}T00:00:00Z`).toISOString()); } catch (e) { errors.push(`shopify: ${e}`); }
+    try {
+      const pull = await storeMetaFetcher(shop);
+      if (pull) out.meta = await syncAds(shop, "meta", from, to, () => pull(from, to));
+    } catch (e) { errors.push(`meta: ${e}`); }
     if (withHistory) {
       try { out.history = await syncCustomerHistory(shop, 120_000); } catch (e) { errors.push(`history: ${e}`); }
     }

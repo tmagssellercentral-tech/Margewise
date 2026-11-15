@@ -361,3 +361,49 @@ export async function applyFeePreset(f: FormData) {
 export async function saveTxnFee(f: FormData) {
   await run(f, _saveTxnFee, "fees");
 }
+
+// ---------- Meta connection (App Store stores) ----------
+
+async function _chooseMetaAccounts(f: FormData) {
+  const shop = await getShop();
+  const { getConnection } = await import("@/lib/meta-connect");
+  const c = await getConnection(shop.id);
+  if (!c) throw new Error("Connect Meta first");
+  const allowed = new Set(c.available_accounts.map((a) => a.id));
+  const ids = f.getAll("account").map(String).filter((id) => allowed.has(id));
+  const { error } = await db().from("ad_connections").update({ account_ids: ids, updated_at: new Date().toISOString() })
+    .eq("shop_id", shop.id).eq("platform", "meta");
+  if (error) throw new Error(error.message);
+  if (ids.length) await _syncMetaNow();
+}
+
+async function _syncMetaNow() {
+  const shop = await getShop();
+  const { storeMetaFetcher } = await import("@/lib/meta-connect");
+  const { syncAds } = await import("@/lib/sync");
+  const pull = await storeMetaFetcher(shop);
+  if (!pull) throw new Error("Choose at least one Meta ad account");
+  const today = localDate(new Date(), shop.timezone);
+  const from = addDays(today, -60);
+  await syncAds(shop, "meta", from, today, () => pull(from, today));
+  await recompute(shop, from, today);
+}
+
+async function _disconnectMeta() {
+  const shop = await getShop();
+  // Remove the token and stop syncing. Spend already loaded stays, so past reports don't change.
+  const { error } = await db().from("ad_connections").delete().eq("shop_id", shop.id).eq("platform", "meta");
+  if (error) throw new Error(error.message);
+}
+
+export async function chooseMetaAccounts(f: FormData) {
+  await run(f, _chooseMetaAccounts, "ads");
+}
+
+export async function syncMetaNow(f: FormData) {
+  await run(f, _syncMetaNow, "ads");
+}
+
+export async function disconnectMeta(f: FormData) {
+  await run(f, _disconnectMeta, "ads");
+}

@@ -399,3 +399,10 @@ body.embedded .side { display: none; }
 .lockedstat small { color: var(--muted); }
 .lockedstat .btn { margin-left: auto; }
 @media (max-width: 760px) { .lockedstat { grid-column: 1 / -1; } }
+
+/* Ad connections */
+button.secondary, .btn.secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+button.danger { background: transparent; color: var(--neg); border: 1px solid var(--line); }
+.checks { display: grid; gap: 6px; margin: 8px 0 12px; }
+.check { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.check .hint { font-weight: 400; }
