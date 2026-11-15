@@ -18,3 +18,23 @@ export async function backToSettings(shopId: string) {
   const handle = shop?.myshopify_domain?.replace(/\.myshopify\.com$/, "");
   return handle ? `https://admin.shopify.com/store/${handle}/apps/${process.env.SHOPIFY_APP_HANDLE ?? "margewise-1"}/settings?tab=ads` : undefined;
 }
+
+/** Loads the last 60 days of spend for a platform the store just connected (run after the response). */
+export async function loadConnectedSpend(shopId: string, platform: "meta" | "google") {
+  const { addDays, localDate } = await import("./dates");
+  const { storeFetchers } = await import("./ad-connect");
+  const { recompute, syncAds } = await import("./sync");
+  const { runForStore } = await import("./shop-context");
+  const { credentialsFor } = await import("./shopify-app");
+  const row = (await db().from("shops").select("*").eq("id", shopId).single()).data;
+  if (!row?.myshopify_domain) return;
+  const shop = { ...row, vat_rate: Number(row.vat_rate) };
+  const pull = await storeFetchers[platform](shop);
+  if (!pull) return;
+  const today = localDate(new Date(), shop.timezone);
+  const from = addDays(today, -60);
+  await runForStore(credentialsFor(row.myshopify_domain), async () => {
+    await syncAds(shop, platform, from, today, () => pull(from, today));
+    await recompute(shop, from, today);
+  });
+}

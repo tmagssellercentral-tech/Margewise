@@ -1,7 +1,9 @@
 import { completeMetaConnection, readState } from "@/lib/meta-connect";
-import { backToSettings, resultPage as page } from "@/lib/oauth-page";
+import { after } from "next/server";
+import { backToSettings, loadConnectedSpend, resultPage as page } from "@/lib/oauth-page";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 /** Facebook sends the store back here after it approves read-only access to its ad accounts. */
 export async function GET(req: Request) {
@@ -14,6 +16,7 @@ export async function GET(req: Request) {
   if (!code) return page("Meta wasn't connected", "Facebook didn't return a sign-in code. Please try again.", back);
   try {
     const r = await completeMetaConnection(shopId, code);
+    if (r.chosen) after(() => loadConnectedSpend(shopId, "meta").catch((e) => console.error("meta first load", e)));
     const msg = r.accounts === 0
       ? "You're signed in, but this Facebook profile has no ad accounts. Sign in with the profile that manages your ads."
       : r.chosen ? "Your ad account is connected. Margewise will load your Meta spend shortly; you can close this tab."

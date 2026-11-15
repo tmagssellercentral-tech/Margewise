@@ -1,6 +1,7 @@
 import { readState } from "@/lib/meta-connect";
 import { completeGoogleConnection } from "@/lib/google-connect";
-import { backToSettings, resultPage as page } from "@/lib/oauth-page";
+import { after } from "next/server";
+import { backToSettings, loadConnectedSpend, resultPage as page } from "@/lib/oauth-page";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -16,6 +17,7 @@ export async function GET(req: Request) {
   if (!code) return page("Google Ads wasn't connected", "Google didn't return a sign-in code. Please try again.", back);
   try {
     const r = await completeGoogleConnection(shopId, code);
+    if (r.chosen) after(() => loadConnectedSpend(shopId, "google").catch((e) => console.error("google first load", e)));
     const msg = r.accounts === 0
       ? "You're signed in, but this Google account has no Google Ads accounts. Sign in with the Google account that manages your ads."
       : r.chosen ? "Your Google Ads account is connected. Margewise will load your Google Ads spend shortly; you can close this tab."
