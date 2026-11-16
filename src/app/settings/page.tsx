@@ -15,6 +15,7 @@ import { UpgradeLink } from "../components/plan";
 import { fmt } from "../components/ui";
 import { getConnection, metaConnectAvailable, metaLoginUrl } from "@/lib/meta-connect";
 import { googleConnectAvailable, googleLoginUrl } from "@/lib/google-connect";
+import { tiktokConnectAvailable, tiktokLoginUrl } from "@/lib/tiktok-connect";
 import { chooseAdAccounts, disconnectAds, syncAdsNow } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -344,10 +345,10 @@ async function AdsTab() {
     m.days.add(u.date);
     months.set(k, m);
   }
-  const [meta, google] = shop.is_owner === false
-    ? await Promise.all([getConnection(shop.id, "meta"), getConnection(shop.id, "google")])
-    : [null, null];
-  const connected = (p: string) => ((p === "meta" ? meta : p === "google" ? google : null)?.account_ids.length ?? 0) > 0;
+  const [meta, google, tiktok] = shop.is_owner === false
+    ? await Promise.all([getConnection(shop.id, "meta"), getConnection(shop.id, "google"), getConnection(shop.id, "tiktok")])
+    : [null, null, null];
+  const connected = (p: string) => (({ meta, google, tiktok } as Record<string, typeof meta>)[p]?.account_ids.length ?? 0) > 0;
   return (
     <>
       {shop.is_owner === false && (
@@ -362,6 +363,10 @@ async function AdsTab() {
             available={googleConnectAvailable()} loginUrl={googleLoginUrl(shop.id)} who="Google account"
             intro={<>Sign in with the Google account that manages your Google Ads. Margewise only reads reports: daily spend and conversion
               value per campaign. It never creates or changes campaigns, bids or budgets. The sign-in opens in a new tab.</>} />
+          <ConnectCard platform="tiktok" title="TikTok Ads" conn={tiktok} timezone={shop.timezone}
+            available={tiktokConnectAvailable()} loginUrl={tiktokLoginUrl(shop.id)} who="TikTok account"
+            intro={<>Sign in with the TikTok account that manages your TikTok Ads and tick the ad accounts to share. Margewise only reads
+              account details and reports: daily spend and conversion value per campaign. It never creates or changes ads. The sign-in opens in a new tab.</>} />
         </>
       )}
       <div className="card">

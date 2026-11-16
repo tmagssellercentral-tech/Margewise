@@ -10,8 +10,7 @@ const BASE = process.env.TIKTOK_API_URL ?? "https://business-api.tiktok.com/open
 
 export const tiktokConfigured = () => Boolean(process.env.TIKTOK_ACCESS_TOKEN && process.env.TIKTOK_ADVERTISER_IDS);
 
-async function call<T>(path: string, params: Record<string, string>): Promise<T> {
-  const token = process.env.TIKTOK_ACCESS_TOKEN!;
+export async function tiktokCall<T>(path: string, params: Record<string, string>, token = process.env.TIKTOK_ACCESS_TOKEN!): Promise<T> {
   const res = await fetch(`${BASE}${path}?${new URLSearchParams(params)}`, { headers: { "Access-Token": token }, cache: "no-store" });
   const body = await res.json().catch(() => null);
   // TikTok returns HTTP 200 with a non-zero code on errors.
@@ -24,8 +23,9 @@ interface ReportRow {
   metrics: Record<string, string>;
 }
 
-export async function fetchTikTokCampaignDays(from: string, to: string): Promise<CampaignDay[]> {
-  const ids = (process.env.TIKTOK_ADVERTISER_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+export async function fetchTikTokCampaignDays(from: string, to: string, creds?: { token: string; accounts: string[] }): Promise<CampaignDay[]> {
+  const ids = creds?.accounts ?? (process.env.TIKTOK_ADVERTISER_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const call = <T,>(path: string, params: Record<string, string>) => tiktokCall<T>(path, params, creds?.token);
   const out: CampaignDay[] = [];
   for (const id of ids) {
     const info = await call<{ list: { currency?: string }[] }>("/advertiser/info/", {
