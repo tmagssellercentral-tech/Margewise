@@ -71,3 +71,8 @@ export async function refreshIfStale(shop: Shop, maxAgeMs = 5 * 60_000) {
   const today = localDate(new Date(), shop.timezone);
   return syncStore(shop, addDays(today, -2), today, false);
 }
+
+/** Re-pulls orders and ad spend for a few days (used before the daily email reports on yesterday). */
+export function refreshDays(shop: Shop, from: string, to: string) {
+  return syncStore(shop, from, to, false);
+}

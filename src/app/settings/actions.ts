@@ -416,3 +416,35 @@ export async function syncAdsNow(f: FormData) {
 export async function disconnectAds(f: FormData) {
   await run(f, _disconnectAds, "ads");
 }
+
+// ---------- Daily profit email ----------
+
+async function _saveDailyEmail(f: FormData) {
+  const shop = await getShop();
+  const { parseRecipients } = await import("@/lib/daily-email");
+  const recipients = parseRecipients(str(f, "recipients"));
+  const enabled = bool(f, "enabled");
+  if (enabled && !recipients.length) throw new Error("Add at least one email address");
+  const { error } = await db().from("email_reports").upsert(
+    { shop_id: shop.id, enabled, recipients, last_error: null, updated_at: new Date().toISOString() },
+    { onConflict: "shop_id" },
+  );
+  if (error) throw new Error(error.message);
+}
+
+async function _sendTestEmail(f: FormData) {
+  await _saveDailyEmail(f);
+  const shop = await getShop();
+  const { parseRecipients, sendFor } = await import("@/lib/daily-email");
+  const recipients = parseRecipients(str(f, "recipients"));
+  if (!recipients.length) throw new Error("Add at least one email address");
+  await sendFor(shop, recipients, new Date(), { test: true });
+}
+
+export async function saveDailyEmail(f: FormData) {
+  await run(f, _saveDailyEmail, "email");
+}
+
+export async function sendTestEmail(f: FormData) {
+  await run(f, _sendTestEmail, "email");
+}

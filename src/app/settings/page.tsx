@@ -18,7 +18,8 @@ import { googleConnectAvailable, googleLoginUrl } from "@/lib/google-connect";
 import { tiktokConnectAvailable, tiktokLoginUrl } from "@/lib/tiktok-connect";
 import { pinterestConnectAvailable, pinterestLoginUrl } from "@/lib/pinterest-connect";
 import { snapchatConnectAvailable, snapchatLoginUrl } from "@/lib/snapchat-connect";
-import { chooseAdAccounts, disconnectAds, syncAdsNow } from "./actions";
+import { chooseAdAccounts, disconnectAds, saveDailyEmail, sendTestEmail, syncAdsNow } from "./actions";
+import { MAX_RECIPIENTS, SEND_HOUR } from "@/lib/daily-email";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ const TABS = [
   { key: "products", label: "Products" },
   { key: "fixed", label: "Fixed costs" },
   { key: "ads", label: "Ad platforms" },
+  { key: "email", label: "Daily email" },
   { key: "plan", label: "Plan" },
 ];
 
@@ -53,6 +55,7 @@ export default async function Settings({ searchParams }: { searchParams: SP }) {
       {tab === "products" && <ProductsTab q={sp.q} />}
       {tab === "fixed" && <FixedCosts back="/settings?tab=fixed" />}
       {tab === "ads" && <AdsTab />}
+      {tab === "email" && <EmailTab />}
       {tab === "plan" && <PlanTab />}
     </Shell>
   );
@@ -545,5 +548,32 @@ function ConnectCard({ platform, title, conn, timezone, available, loginUrl, who
         </>
       )}
     </div>
+  );
+}
+
+async function EmailTab() {
+  const shop = await getShop();
+  const { data } = await db().from("email_reports").select("*").eq("shop_id", shop.id).maybeSingle();
+  const on = Boolean(data?.enabled);
+  const recipients: string[] = data?.recipients ?? [];
+  return (
+    <form action={saveDailyEmail} className="card form">
+      <h2>Daily profit email</h2>
+      <p className="hint">
+        Every morning at about {String(SEND_HOUR).padStart(2, "0")}:00 ({shop.timezone}), get yesterday&apos;s net profit, revenue,
+        costs, ad spend against break-even ROAS, your most profitable products and the month so far. Days with no orders and
+        no ad spend are skipped.
+      </p>
+      <label className="check"><input type="checkbox" name="enabled" defaultChecked={on} /> Send the daily profit email</label>
+      <label>Send to (up to {MAX_RECIPIENTS} addresses, separated by commas)
+        <input name="recipients" defaultValue={recipients.join(", ")} placeholder="you@yourstore.com, partner@yourstore.com" />
+      </label>
+      {data?.last_sent_date && <p className="hint">Last sent for {data.last_sent_date}.</p>}
+      {data?.last_error && on && <div className="alert">The last email didn&apos;t send: {data.last_error}</div>}
+      <div className="exports">
+        <button type="submit">Save daily email</button>
+        <button type="submit" formAction={sendTestEmail} className="secondary">Send a test now</button>
+      </div>
+    </form>
   );
 }

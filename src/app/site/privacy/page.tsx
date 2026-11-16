@@ -43,6 +43,7 @@ export default function Privacy() {
       <ul>
         <li><b>Supabase</b> (database), hosted in Frankfurt, Germany. Data is encrypted at rest.</li>
         <li><b>Vercel</b> (application hosting).</li>
+        <li><b>Resend</b> (email delivery), for the daily profit email when a merchant turns it on: the recipient addresses and the report.</li>
         <li><b>Shopify</b> and the advertising platforms the merchant connects, as the sources of the data.</li>
       </ul>
       <p>Data is encrypted in transit. Access is limited to the people who run Margewise and only for support or maintenance.</p>
