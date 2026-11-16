@@ -43,7 +43,7 @@ const dayLabel = (ymd: string) =>
 function dashboardUrl(shop: Shop, tab?: string) {
   const handle = shop.myshopify_domain?.replace(/\.myshopify\.com$/, "");
   const app = process.env.SHOPIFY_APP_HANDLE ?? "margewise-1";
-  if (shop.is_owner || !handle) return `${APP()}${tab ? `/settings?tab=${tab}` : "/"}`;
+  if (!handle) return `${APP()}${tab ? `/settings?tab=${tab}` : "/"}`;
   return `https://admin.shopify.com/store/${handle}/apps/${app}${tab ? `/settings?tab=${tab}` : ""}`;
 }
 
