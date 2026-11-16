@@ -44,7 +44,7 @@ export const SOLUTIONS: Solution[] = [
     blurb: "MER, ROAS and POAS against your break-even",
     title: "Ad profit tracking for Shopify: MER, blended ROAS, break-even ROAS and POAS",
     description:
-      "Track Meta, Google and TikTok ad spend against real profit. Margewise shows MER, blended ROAS, break-even ROAS and POAS, and marks every campaign above or below break-even.",
+      "Track Meta, Google, TikTok, Pinterest and Snapchat ad spend against real profit. Margewise shows MER, blended ROAS, break-even ROAS and POAS, and marks every campaign above or below break-even.",
     h1: "Know which ads make money, not just sales",
     intro:
       "A 3x ROAS can still lose money. Margewise works out the ROAS your store needs to break even from your actual costs, then marks each ad platform, and on Growth and above each campaign, above or below that line.",
@@ -57,7 +57,7 @@ export const SOLUTIONS: Solution[] = [
       { t: "POAS", d: "Profit before ads per unit of ad spend. Above 1, the ads paid for themselves." },
     ],
     faqs: [
-      { q: "Which ad platforms are supported?", a: "Meta (Facebook and Instagram) and Google Ads connect directly. TikTok, Pinterest and Snapchat direct connections are on the way; until then, and for any other channel, upload a CSV or enter spend by hand." },
+      { q: "Which ad platforms are supported?", a: "Meta (Facebook and Instagram), Google Ads, TikTok, Pinterest and Snapchat connect directly, read-only. For any other channel, upload a CSV or enter spend by hand." },
       { q: "Does Margewise change my ads?", a: "No. Access is read-only: Margewise reads daily spend and conversion value per campaign and never creates or edits anything." },
       { q: "What about ad spend in another currency?", a: "Each day's spend is converted to your store currency at that day's European Central Bank rate." },
     ],
@@ -159,7 +159,7 @@ export const solution = (slug: string) => SOLUTIONS.find((s) => s.slug === slug)
 export const FAQ = [
   { q: "What does Margewise do?", a: "Margewise is a Shopify app that calculates your true profit: revenue after product costs, payment fees, shipping, packaging, returns, tax, ad spend and fixed costs, for every order and any date range." },
   { q: "How much does it cost?", a: "Free for up to 100 orders a month. Paid plans start at $29 a month, with a 14-day free trial and 20% off when you pay yearly." },
-  { q: "Which ad platforms connect?", a: "Meta and Google Ads connect directly, read-only. TikTok, Pinterest and Snapchat direct connections are on the way, and any channel can be added by CSV upload or manual entry." },
+  { q: "Which ad platforms connect?", a: "Meta, Google Ads, TikTok, Pinterest and Snapchat connect directly, read-only. Any other channel can be added by CSV upload or manual entry." },
   { q: "Will it work for my country and currency?", a: "Yes. Margewise works in your store's currency, converts ad spend from other currencies daily and handles VAT-inclusive and sales-tax pricing." },
   { q: "Is my data safe?", a: "Access is read-only, sign-ins are encrypted, and Margewise stores no customer names, emails or addresses. Uninstalling deletes your store's data." },
 ];

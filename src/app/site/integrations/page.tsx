@@ -4,7 +4,7 @@ import { crumbsLd, JsonLd, pageMeta } from "../seo";
 
 export const metadata = pageMeta(
   "/integrations",
-  "Integrations: Shopify, Meta, Google Ads, payment gateways and couriers",
+  "Integrations: Shopify, Meta, Google Ads, TikTok, Pinterest, Snapchat, payment gateways and couriers",
   "Margewise connects to Shopify, Meta (Facebook and Instagram) and Google Ads, reads actual Shopify Payments fees, and supports PayPal, Mollie, PayFast, Paystack, Razorpay and more. Any other ad channel or courier by CSV.",
 );
 
@@ -18,9 +18,9 @@ const GROUPS: { name: string; intro: string; items: [string, string, Status][] }
   { name: "Ad platforms", intro: "Read-only. Daily spend and conversion value per campaign, converted to your store currency.", items: [
     ["Meta", "Facebook and Instagram ads. Sign in with Facebook and choose your ad accounts.", "live"],
     ["Google Ads", "Search, Shopping, Performance Max and YouTube. Sign in with Google, including accounts under a manager.", "live"],
-    ["TikTok Ads", "Upload a daily campaign report as CSV today.", "soon"],
-    ["Pinterest Ads", "Upload a daily campaign report as CSV today.", "soon"],
-    ["Snapchat Ads", "Upload a daily campaign report as CSV today.", "soon"],
+    ["TikTok Ads", "Sign in with TikTok for Business and choose your advertiser accounts.", "live"],
+    ["Pinterest Ads", "Sign in with Pinterest and choose your ad accounts.", "live"],
+    ["Snapchat Ads", "Sign in with Snapchat and choose your ad accounts.", "live"],
     ["Microsoft Advertising", "Export a daily campaign report from Bing and upload it.", "csv"],
     ["X (Twitter) Ads", "Export a daily campaign report and upload it.", "csv"],
     ["Influencers and sponsorships", "Enter payments on the day they ran.", "csv"],

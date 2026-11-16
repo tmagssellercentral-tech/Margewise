@@ -13,7 +13,7 @@ const FEATURES: Record<string, string[]> = {
     "Net profit after every cost",
     "Profit & loss by month",
     "Product profit by SKU",
-    "Meta and Google Ads connected",
+    "Meta, Google, TikTok, Pinterest and Snapchat ads connected",
     "MER, ROAS, break-even ROAS, POAS",
     "Payment fees, shipping, returns, tax",
     "Excel and CSV exports",

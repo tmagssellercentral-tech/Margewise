@@ -8,7 +8,7 @@ import { crumbsLd, faqLd, JsonLd, pageMeta } from "../seo";
 export const metadata = pageMeta(
   "/pricing",
   "Pricing: Shopify profit tracking from $0",
-  "Margewise pricing: free up to 100 orders a month, then from $29 a month by order volume. Every plan includes net profit, P&L, product profit and Meta and Google ad tracking. 14-day free trial, 20% off yearly.",
+  "Margewise pricing: free up to 100 orders a month, then from $29 a month by order volume. Every plan includes net profit, P&L, product profit and Meta, Google, TikTok, Pinterest and Snapchat ad tracking. 14-day free trial, 20% off yearly.",
 );
 
 const Y = <span className="yes" aria-label="Included">✓</span>;
@@ -33,7 +33,7 @@ const GROUPS: { name: string; rows: [string, boolean, boolean, boolean, boolean]
     ["Daily currency conversion", true, true, true, true],
   ] },
   { name: "Ads", rows: [
-    ["Meta and Google Ads connections", true, true, true, true],
+    ["Meta, Google, TikTok, Pinterest and Snapchat connections", true, true, true, true],
     ["CSV upload for any other channel", true, true, true, true],
     ["MER, blended ROAS, break-even ROAS, POAS", true, true, true, true],
     ["Each platform against break-even", true, true, true, true],

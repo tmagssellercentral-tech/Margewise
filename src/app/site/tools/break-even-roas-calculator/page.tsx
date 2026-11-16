@@ -54,7 +54,7 @@ export default function BreakEvenRoas() {
       <div className="band-wrap">
         <div className="wrap">
           <div className="band">
-            <div><h2>Your break-even, calculated from every order</h2><p>Margewise judges each Meta and Google campaign against your real break-even ROAS.</p></div>
+            <div><h2>Your break-even, calculated from every order</h2><p>Margewise judges each Meta, Google, TikTok, Pinterest and Snapchat campaign against your real break-even ROAS.</p></div>
             <a className="btn mint" href={cta.href}>{cta.label}</a>
           </div>
         </div>

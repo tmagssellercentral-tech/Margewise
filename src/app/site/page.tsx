@@ -9,7 +9,7 @@ import { faqLd, JsonLd, pageMeta } from "./seo";
 export const metadata = pageMeta(
   "/",
   "Margewise: true profit analytics for Shopify stores",
-  "See your Shopify store's real net profit after product costs, payment fees, shipping, returns, tax and Meta and Google ad spend. MER, ROAS and break-even ROAS on every campaign. Free up to 100 orders a month.",
+  "See your Shopify store's real net profit after product costs, payment fees, shipping, returns, tax and ad spend from Meta, Google, TikTok, Pinterest and Snapchat. MER, ROAS and break-even ROAS on every campaign. Free up to 100 orders a month.",
   true,
 );
 
@@ -24,7 +24,7 @@ const COSTS = [
   ["Shipping", "Couriers", "What the courier charges by destination and parcel size, or the exact amount from your courier's invoice."],
   ["Returns & packaging", "Order costs", "Return shipping, handling and packaging per order, so refunds show their real cost."],
   ["Tax", "VAT and sales tax", "Removed from revenue whether your prices include VAT or tax is added at checkout."],
-  ["Ads & overheads", "Marketing and fixed costs", "Daily spend from Meta and Google, CSV for any other channel, plus rent, salaries and software."],
+  ["Ads & overheads", "Marketing and fixed costs", "Daily spend from Meta, Google, TikTok, Pinterest and Snapchat, CSV for any other channel, plus rent, salaries and software."],
 ];
 
 const FORMULAS = [

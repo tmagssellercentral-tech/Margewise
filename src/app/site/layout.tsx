@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: { default: "Margewise: true profit analytics for Shopify stores", template: "%s | Margewise" },
   description:
-    "Margewise is a Shopify profit app that shows your real net profit after product costs, payment fees, shipping, returns, tax and ad spend from Meta and Google. Free up to 100 orders a month.",
+    "Margewise is a Shopify profit app that shows your real net profit after product costs, payment fees, shipping, returns, tax and ad spend from Meta, Google, TikTok, Pinterest and Snapchat. Free up to 100 orders a month.",
   applicationName: "Margewise",
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
   openGraph: { type: "website", siteName: "Margewise", locale: "en_US", images: [{ url: "/site/og.png", width: 1200, height: 630, alt: "Margewise: true profit for Shopify stores" }] },
