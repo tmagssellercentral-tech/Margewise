@@ -17,6 +17,7 @@ import { getConnection, metaConnectAvailable, metaLoginUrl } from "@/lib/meta-co
 import { googleConnectAvailable, googleLoginUrl } from "@/lib/google-connect";
 import { tiktokConnectAvailable, tiktokLoginUrl } from "@/lib/tiktok-connect";
 import { pinterestConnectAvailable, pinterestLoginUrl } from "@/lib/pinterest-connect";
+import { snapchatConnectAvailable, snapchatLoginUrl } from "@/lib/snapchat-connect";
 import { chooseAdAccounts, disconnectAds, syncAdsNow } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -346,10 +347,10 @@ async function AdsTab() {
     m.days.add(u.date);
     months.set(k, m);
   }
-  const [meta, google, tiktok, pinterest] = shop.is_owner === false
-    ? await Promise.all([getConnection(shop.id, "meta"), getConnection(shop.id, "google"), getConnection(shop.id, "tiktok"), getConnection(shop.id, "pinterest")])
-    : [null, null, null, null];
-  const conns = { meta, google, tiktok, pinterest } as Record<string, typeof meta>;
+  const [meta, google, tiktok, pinterest, snapchat] = shop.is_owner === false
+    ? await Promise.all(["meta", "google", "tiktok", "pinterest", "snapchat"].map((p) => getConnection(shop.id, p)))
+    : [null, null, null, null, null];
+  const conns = { meta, google, tiktok, pinterest, snapchat } as Record<string, typeof meta>;
   const connected = (p: string) => (conns[p]?.account_ids.length ?? 0) > 0;
   const signedInOnly = (p: string) => shop.is_owner === false && !!conns[p] && !connected(p);
   return (
@@ -374,6 +375,10 @@ async function AdsTab() {
             available={pinterestConnectAvailable()} loginUrl={pinterestLoginUrl(shop.id)} who="Pinterest account"
             intro={<>Sign in with the Pinterest business account that runs your ads. Margewise asks for <b>read-only</b> access to your ad
               accounts and reads daily spend and checkout value per campaign. Pinterest reports days in UTC. The sign-in opens in a new tab.</>} />
+          <ConnectCard platform="snapchat" title="Snapchat Ads" conn={snapchat} timezone={shop.timezone}
+            available={snapchatConnectAvailable()} loginUrl={snapchatLoginUrl(shop.id)} who="Snapchat account"
+            intro={<>Sign in with the Snapchat account that manages your Snapchat Ads. Margewise reads daily spend and purchase value per
+              campaign from your ad accounts, and never creates or changes ads. The sign-in opens in a new tab.</>} />
         </>
       )}
       <div className="card">
