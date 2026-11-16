@@ -43,7 +43,8 @@ const dayLabel = (ymd: string) =>
 function dashboardUrl(shop: Shop, tab?: string) {
   const handle = shop.myshopify_domain?.replace(/\.myshopify\.com$/, "");
   const app = process.env.SHOPIFY_APP_HANDLE ?? "margewise-1";
-  if (!handle) return `${APP()}${tab ? `/settings?tab=${tab}` : "/"}`;
+  // The owner store's Shopify app is the private one used for syncing, so its dashboard is the password-protected one.
+  if (shop.is_owner || !handle) return `${process.env.OWNER_DASHBOARD_URL ?? "https://margewise.vercel.app"}${tab ? `/settings?tab=${tab}` : "/"}`;
   return `https://admin.shopify.com/store/${handle}/apps/${app}${tab ? `/settings?tab=${tab}` : ""}`;
 }
 
