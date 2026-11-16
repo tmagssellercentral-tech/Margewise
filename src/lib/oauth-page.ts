@@ -20,7 +20,7 @@ export async function backToSettings(shopId: string) {
 }
 
 /** Loads the last 60 days of spend for a platform the store just connected (run after the response). */
-export async function loadConnectedSpend(shopId: string, platform: "meta" | "google" | "tiktok") {
+export async function loadConnectedSpend(shopId: string, platform: "meta" | "google" | "tiktok" | "pinterest") {
   const { addDays, localDate } = await import("./dates");
   const { storeFetchers } = await import("./ad-connect");
   const { recompute, syncAds } = await import("./sync");

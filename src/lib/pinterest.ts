@@ -12,7 +12,7 @@ const BASE = "https://api.pinterest.com/v5";
 export const pinterestConfigured = () =>
   Boolean(process.env.PINTEREST_CLIENT_ID && process.env.PINTEREST_CLIENT_SECRET && process.env.PINTEREST_REFRESH_TOKEN && process.env.PINTEREST_AD_ACCOUNT_IDS);
 
-async function get<T>(token: string, path: string, params: Record<string, string> = {}): Promise<T> {
+export async function pinterestGet<T>(token: string, path: string, params: Record<string, string> = {}): Promise<T> {
   const q = new URLSearchParams(params).toString();
   const res = await fetch(`${BASE}${path}${q ? `?${q}` : ""}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
   const body = await res.json().catch(() => null);
@@ -22,8 +22,8 @@ async function get<T>(token: string, path: string, params: Record<string, string
 
 const micros = (v: unknown) => Number(v ?? 0) / 1_000_000;
 
-export async function fetchPinterestCampaignDays(shop: Shop, from: string, to: string): Promise<CampaignDay[]> {
-  const token = await accessTokenFor(shop, {
+export async function fetchPinterestCampaignDays(shop: Shop, from: string, to: string, creds?: { token: string; accounts: string[] }): Promise<CampaignDay[]> {
+  const token = creds?.token ?? await accessTokenFor(shop, {
     platform: "pinterest",
     tokenUrl: `${BASE}/oauth/token`,
     clientId: process.env.PINTEREST_CLIENT_ID!,
@@ -32,14 +32,14 @@ export async function fetchPinterestCampaignDays(shop: Shop, from: string, to: s
     basicAuth: true,
     extra: { continuous_refresh: "true" },
   });
-  const ids = (process.env.PINTEREST_AD_ACCOUNT_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const ids = creds?.accounts ?? (process.env.PINTEREST_AD_ACCOUNT_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   const out: CampaignDay[] = [];
   for (const acct of ids) {
-    const info = await get<{ currency?: string }>(token, `/ad_accounts/${acct}`);
+    const info = await pinterestGet<{ currency?: string }>(token, `/ad_accounts/${acct}`);
     const campaigns: { id: string; name: string }[] = [];
     let bookmark: string | null = null;
     do {
-      const page: { items: { id: string; name: string }[]; bookmark?: string | null } = await get(token, `/ad_accounts/${acct}/campaigns`, {
+      const page: { items: { id: string; name: string }[]; bookmark?: string | null } = await pinterestGet(token, `/ad_accounts/${acct}/campaigns`, {
         page_size: "250",
         entity_statuses: "ACTIVE,PAUSED,ARCHIVED",
         ...(bookmark ? { bookmark } : {}),
@@ -52,7 +52,7 @@ export async function fetchPinterestCampaignDays(shop: Shop, from: string, to: s
     for (let i = 0; i < campaigns.length; i += 250) {
       const batch = campaigns.slice(i, i + 250).map((c) => c.id).join(",");
       for (const [s, e] of chunkRange(from, to, 90)) {
-        const rows = await get<Record<string, string | number>[]>(token, `/ad_accounts/${acct}/campaigns/analytics`, {
+        const rows = await pinterestGet<Record<string, string | number>[]>(token, `/ad_accounts/${acct}/campaigns/analytics`, {
           start_date: s,
           end_date: e,
           campaign_ids: batch,

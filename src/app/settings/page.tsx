@@ -16,6 +16,7 @@ import { fmt } from "../components/ui";
 import { getConnection, metaConnectAvailable, metaLoginUrl } from "@/lib/meta-connect";
 import { googleConnectAvailable, googleLoginUrl } from "@/lib/google-connect";
 import { tiktokConnectAvailable, tiktokLoginUrl } from "@/lib/tiktok-connect";
+import { pinterestConnectAvailable, pinterestLoginUrl } from "@/lib/pinterest-connect";
 import { chooseAdAccounts, disconnectAds, syncAdsNow } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -345,10 +346,10 @@ async function AdsTab() {
     m.days.add(u.date);
     months.set(k, m);
   }
-  const [meta, google, tiktok] = shop.is_owner === false
-    ? await Promise.all([getConnection(shop.id, "meta"), getConnection(shop.id, "google"), getConnection(shop.id, "tiktok")])
-    : [null, null, null];
-  const connected = (p: string) => (({ meta, google, tiktok } as Record<string, typeof meta>)[p]?.account_ids.length ?? 0) > 0;
+  const [meta, google, tiktok, pinterest] = shop.is_owner === false
+    ? await Promise.all([getConnection(shop.id, "meta"), getConnection(shop.id, "google"), getConnection(shop.id, "tiktok"), getConnection(shop.id, "pinterest")])
+    : [null, null, null, null];
+  const connected = (p: string) => (({ meta, google, tiktok, pinterest } as Record<string, typeof meta>)[p]?.account_ids.length ?? 0) > 0;
   return (
     <>
       {shop.is_owner === false && (
@@ -367,6 +368,10 @@ async function AdsTab() {
             available={tiktokConnectAvailable()} loginUrl={tiktokLoginUrl(shop.id)} who="TikTok account"
             intro={<>Sign in with the TikTok account that manages your TikTok Ads and tick the ad accounts to share. Margewise only reads
               account details and reports: daily spend and conversion value per campaign. It never creates or changes ads. The sign-in opens in a new tab.</>} />
+          <ConnectCard platform="pinterest" title="Pinterest Ads" conn={pinterest} timezone={shop.timezone}
+            available={pinterestConnectAvailable()} loginUrl={pinterestLoginUrl(shop.id)} who="Pinterest account"
+            intro={<>Sign in with the Pinterest business account that runs your ads. Margewise asks for <b>read-only</b> access to your ad
+              accounts and reads daily spend and checkout value per campaign. Pinterest reports days in UTC. The sign-in opens in a new tab.</>} />
         </>
       )}
       <div className="card">
