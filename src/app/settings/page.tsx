@@ -349,7 +349,9 @@ async function AdsTab() {
   const [meta, google, tiktok, pinterest] = shop.is_owner === false
     ? await Promise.all([getConnection(shop.id, "meta"), getConnection(shop.id, "google"), getConnection(shop.id, "tiktok"), getConnection(shop.id, "pinterest")])
     : [null, null, null, null];
-  const connected = (p: string) => (({ meta, google, tiktok, pinterest } as Record<string, typeof meta>)[p]?.account_ids.length ?? 0) > 0;
+  const conns = { meta, google, tiktok, pinterest } as Record<string, typeof meta>;
+  const connected = (p: string) => (conns[p]?.account_ids.length ?? 0) > 0;
+  const signedInOnly = (p: string) => shop.is_owner === false && !!conns[p] && !connected(p);
   return (
     <>
       {shop.is_owner === false && (
@@ -390,6 +392,7 @@ async function AdsTab() {
                   <td>{p.kind === "connector" ? "Automatic" : "CSV or manual"}</td>
                   <td>{p.kind === "upload" ? <span className="hint">{p.note}</span>
                     : on ? (run?.status === "error" ? <span className="badge bad">Error</span> : <span className="badge ok">Connected</span>)
+                    : signedInOnly(p.key) ? <span className="badge">Choose an account</span>
                     : <span className="badge">Not connected</span>}</td>
                   <td>{p.kind === "connector" && run?.finished_at ? new Date(run.finished_at).toLocaleString("en-ZA", { timeZone: shop.timezone }) : "–"}
                     {p.kind === "connector" && run?.status === "error" && <div className="hint">{run.detail?.slice(0, 160)}</div>}</td>

@@ -54,9 +54,10 @@ export async function completePinterestConnection(shopId: string, code: string) 
   const accounts: PinterestAccount[] = [];
   let bookmark: string | null = null;
   do {
-    const page: { items: { id: string; name: string; currency?: string }[]; bookmark?: string | null } =
+    const page: { items: { id: string; name: string; currency?: string; status?: string }[]; bookmark?: string | null } =
       await pinterestGet(t.access_token, "/ad_accounts", { page_size: "100", ...(bookmark ? { bookmark } : {}) });
-    for (const a of page.items ?? []) accounts.push({ id: String(a.id), name: a.name, currency: a.currency ?? "", active: true });
+    // Archived accounts can't run ads, so they're left out of the list.
+    for (const a of page.items ?? []) if (a.status !== "ARCHIVED") accounts.push({ id: String(a.id), name: a.name, currency: a.currency ?? "", active: true });
     bookmark = page.bookmark ?? null;
   } while (bookmark);
 
