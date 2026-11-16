@@ -6,14 +6,16 @@ export function JsonLd({ data }: { data: object }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 }
 
+const OG = { url: "/site/og.png", width: 1200, height: 630, alt: "Margewise: true profit for Shopify stores" };
+
 /** Per-page metadata with a canonical address on margewise.io (never the /site path). */
 export function pageMeta(path: string, title: string, description: string, absoluteTitle = false): Metadata {
   return {
     title: absoluteTitle ? { absolute: title } : title,
     description,
     alternates: { canonical: `${SITE}${path === "/" ? "" : path}` },
-    openGraph: { title, description, url: `${SITE}${path}` },
-    twitter: { title, description },
+    openGraph: { type: "website", siteName: "Margewise", title, description, url: `${SITE}${path}`, images: [OG] },
+    twitter: { card: "summary_large_image", title, description, images: [OG.url] },
   };
 }
 
