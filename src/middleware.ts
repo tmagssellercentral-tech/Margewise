@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest) {
   for (const h of INTERNAL) headers.delete(h);
 
   if (PUBLIC_HOSTS.has(host)) {
-    if (path.startsWith("/site")) return NextResponse.next({ request: { headers } });
+    if (path === "/site" || path.startsWith("/site/")) return NextResponse.next({ request: { headers } });
     const url = req.nextUrl.clone();
     url.pathname = path === "/" ? "/site" : `/site${path}`;
     return NextResponse.rewrite(url, { request: { headers } });
