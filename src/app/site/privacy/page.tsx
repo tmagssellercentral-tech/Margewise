@@ -3,7 +3,7 @@ import { pageMeta } from "../seo";
 
 export const metadata = pageMeta("/privacy", "Privacy policy", "How Margewise collects, uses, stores and deletes Shopify store and advertising data.");
 
-const UPDATED = "13 November 2026";
+const UPDATED = "17 November 2026";
 
 export default function Privacy() {
   return (
@@ -61,6 +61,54 @@ export default function Privacy() {
         <li><b>Delete everything:</b> uninstall Margewise from your Shopify admin. We delete all of the store&apos;s data, including ad spend and campaign data, within 48 hours of Shopify&apos;s deletion request.</li>
         <li><b>Ask us:</b> email {SUPPORT} from the store owner&apos;s email address and we delete the requested data within 30 days and confirm in writing.</li>
       </ul>
+
+      <h2 id="google-user-data">Google user data (Google Ads)</h2>
+      <p>
+        This section applies when a merchant connects a Google Ads account to Margewise by signing in with Google. It sets out what Google user
+        data Margewise accesses, how it is used, shared, protected, kept and deleted.
+      </p>
+      <h3>What Google user data we access</h3>
+      <ul>
+        <li><b>Your Google account email address</b> (through the <code>openid</code> and <code>email</code> scopes), shown in Margewise&apos;s settings so you can see which Google account is connected.</li>
+        <li><b>Google Ads data</b> (through the <code>https://www.googleapis.com/auth/adwords</code> scope): the list of Google Ads accounts you can access (account ID, name and currency), and for the accounts you choose, daily campaign reports: campaign ID, campaign name, date, cost and conversion value.</li>
+        <li><b>An OAuth refresh token</b> issued by Google, so Margewise can fetch new daily reports without asking you to sign in each day.</li>
+      </ul>
+      <p>We access Google Ads data read-only. Margewise never creates, edits, pauses or deletes campaigns, ads, budgets or any other Google Ads settings, and never reads your Gmail, contacts, files or any other Google data.</p>
+      <h3>How we use Google user data</h3>
+      <p>
+        Only to show the merchant who connected the account their advertising cost and conversion value next to their Shopify sales, so
+        Margewise can calculate profit after ad spend and return on ad spend in the merchant&apos;s own reports and daily profit email. We do
+        not use Google user data for advertising, to build profiles, for credit decisions, or to develop, improve or train any artificial
+        intelligence or machine learning models. We do not combine it with other merchants&apos; data.
+      </p>
+      <h3>Who we share it with</h3>
+      <p>
+        We do not sell, rent or share Google user data with anyone, and we do not transfer it to third parties for their own use. It is
+        processed only by the service providers that host Margewise on our behalf, under contract and solely to run the service: Supabase
+        (database, Frankfurt, Germany) and Vercel (application hosting). It may be disclosed if required by law, or as part of a merger or
+        acquisition with the same protections. People at {COMPANY} access it only when the merchant asks us for support, for security
+        investigations, or to comply with the law.
+      </p>
+      <h3>How we protect it</h3>
+      <ul>
+        <li>The Google refresh token is encrypted with AES-256-GCM before it is stored, and is only decrypted on our servers when fetching reports.</li>
+        <li>All data is encrypted in transit (HTTPS/TLS) and encrypted at rest in the database.</li>
+        <li>Access to the database and hosting is limited to the people who run Margewise.</li>
+        <li>Each merchant&apos;s data is kept separate and is only shown to that merchant&apos;s Shopify store.</li>
+      </ul>
+      <h3>How long we keep it and how to delete it</h3>
+      <ul>
+        <li><b>Disconnect:</b> in Margewise, Settings → Ad platforms → Disconnect on the Google Ads card deletes the stored token and connected email address at once and stops all access. You can also remove Margewise at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>, which revokes our access immediately.</li>
+        <li><b>Reports already loaded</b> (daily campaign cost and conversion value) stay in the merchant&apos;s reports while Margewise is installed, so past profit figures don&apos;t change, unless the merchant asks us to delete them.</li>
+        <li><b>Uninstall:</b> when a merchant uninstalls Margewise from Shopify, we delete all of the store&apos;s data, including all Google Ads data, within 48 hours of Shopify&apos;s deletion request.</li>
+        <li><b>On request:</b> email {SUPPORT} and we delete any or all Google user data within 30 days and confirm in writing.</li>
+      </ul>
+      <h3>Google API Services User Data Policy</h3>
+      <p>
+        Margewise&apos;s use and transfer of information received from Google APIs to any other app will adhere to the{" "}
+        <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the
+        Limited Use requirements.
+      </p>
 
       <h2>Requests from shoppers</h2>
       <p>
