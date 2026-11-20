@@ -29,6 +29,16 @@ export async function middleware(req: NextRequest) {
 
   if (EMBEDDED_HOSTS.has(host)) return noindex(await embedded(req, headers));
 
+  // Demo site (fictional "Northwind Fitness" data, for videos and screenshots): no password, but only the
+  // four demo-data pages; everything else (settings, orders, APIs) is sent back to the overview.
+  if (process.env.MARGEWISE_DEMO === "1" && process.env.MARGEWISE_LISTING === "1") {
+    if (["/", "/pnl", "/products", "/marketing"].includes(path)) return noindex(NextResponse.next({ request: { headers } }));
+    const url = req.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+    return noindex(NextResponse.redirect(url));
+  }
+
   const user = process.env.DASHBOARD_USER;
   const pass = process.env.DASHBOARD_PASSWORD;
   if (!user || !pass) return new NextResponse("Dashboard login is not configured", { status: 503 });

@@ -10,13 +10,17 @@ const NAV = [
   { href: "/settings", key: "settings", label: "Settings", icon: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-2-1.2L14.5 3h-5l-.4 2.6a7.6 7.6 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 2 1.2l.4 2.6h5l.4-2.6a7.6 7.6 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" },
 ];
 
+// The demo site (fictional store) shows only the pages that run on demo data.
+const DEMO_SITE = process.env.MARGEWISE_DEMO === "1" && process.env.MARGEWISE_LISTING === "1";
+const DEMO_PAGES = new Set(["overview", "pnl", "products", "marketing"]);
+
 export function Shell({ active, shopName, children, demo }: { active: string; shopName: string; children: React.ReactNode; demo?: boolean }) {
   return (
     <div className="shell">
       <aside className="side">
         <Link href="/" className="brand"><img src="/margewise-icon.svg" alt="" width={26} height={26} className="mark" />Marge<span>wise</span></Link>
         <nav>
-          {NAV.map((n) => (
+          {NAV.filter((n) => !DEMO_SITE || DEMO_PAGES.has(n.key)).map((n) => (
             <Link key={n.key} href={n.href} className={active === n.key ? "on" : ""}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d={n.icon} /></svg>
               <span>{n.label}</span>
