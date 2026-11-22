@@ -256,7 +256,8 @@ export async function computeRange(shop: Shop, from: string, to: string) {
           title: l.title,
           quantity: l.quantity,
           lineTotalIncl: Number(l.line_total_incl),
-          unitCost: l.unit_cost != null ? Number(l.unit_cost) : l.sku ? costOverrides.get(l.sku) ?? null : null,
+          // A cost typed into Margewise wins over Shopify's cost per item; Shopify's is the fallback.
+          unitCost: (l.sku ? costOverrides.get(l.sku) : undefined) ?? (l.unit_cost != null ? Number(l.unit_cost) : null),
         })),
       });
     }

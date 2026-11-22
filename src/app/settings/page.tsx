@@ -312,7 +312,7 @@ async function ProductsTab({ q }: { q?: string }) {
         <button type="submit">Search</button>
       </form>
       {missing > 0 && <div className="alert">{missing} product{missing > 1 ? "s have" : " has"} no cost. These are listed first.</div>}
-      <p className="hint">The cost comes from Shopify (Products → variant → Cost per item). Enter an override only for products whose cost isn&apos;t in Shopify, or when Shopify&apos;s cost is wrong. Amounts are ex VAT, in {shop.currency}.</p>
+      <p className="hint">Margewise uses the cost per item from Shopify (Products → variant → Cost per item). Type your own cost for any product to use instead, for example when it isn&apos;t in Shopify or is out of date. Amounts are ex VAT, in {shop.currency}.</p>
       <div className="gt products"><div className="gh"><span>SKU / product</span><span>Units</span><span>Shopify cost</span><span>Override cost</span><span>Parcel</span><span></span></div>
           {rows.map(([sku, r]) => (
             <div key={sku}>
