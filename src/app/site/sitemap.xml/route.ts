@@ -7,7 +7,7 @@ const PAGES: [string, number][] = [
   ["/", 1], ["/pricing", 0.9], ["/solutions", 0.8],
   ...SOLUTIONS.map((s) => [`/solutions/${s.slug}`, 0.8] as [string, number]),
   ["/integrations", 0.7], ["/tools/break-even-roas-calculator", 0.8],
-  ["/support", 0.4], ["/privacy", 0.2], ["/terms", 0.2],
+  ["/affiliates", 0.6], ["/support", 0.4], ["/privacy", 0.2], ["/terms", 0.2], ["/affiliate-terms", 0.2],
 ];
 
 export function GET() {

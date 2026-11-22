@@ -64,6 +64,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
               <h4>Company</h4>
               <ul>
                 <li><Link href="/support">Support</Link></li>
+                <li><Link href="/affiliates">Affiliate programme</Link></li>
                 <li><a href={`mailto:${SUPPORT}`}>{SUPPORT}</a></li>
                 <li><Link href="/privacy">Privacy policy</Link></li>
                 <li><Link href="/terms">Terms of service</Link></li>
