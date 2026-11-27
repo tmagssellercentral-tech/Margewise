@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   openGraph: { type: "website", siteName: "Margewise", locale: "en_US", images: [{ url: "/site/og.png", width: 1200, height: 630, alt: "Margewise: true profit for Shopify stores" }] },
   twitter: { card: "summary_large_image", images: ["/site/og.png"] },
   icons: { icon: "/margewise-icon.svg" },
+  // Meta Business domain verification for margewise.io
+  other: { "facebook-domain-verification": "cxvjixv8ljmdsnizsw9fl0b8mmg885" },
 };
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
