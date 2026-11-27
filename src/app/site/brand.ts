@@ -6,7 +6,7 @@ export const SITE = "https://margewise.io";
  * The Shopify App Store listing. Leave null until the listing is public: every "get started"
  * button then asks for early access by email instead.
  */
-export const APP_STORE_URL: string | null = null;
+export const APP_STORE_URL: string | null = "https://apps.shopify.com/margewise";
 
 export const cta = APP_STORE_URL
   ? { href: APP_STORE_URL, label: "Install free on Shopify", note: "14-day free trial on paid plans" }

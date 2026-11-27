@@ -3,7 +3,7 @@ import Link from "next/link";
 import "@fontsource-variable/bricolage-grotesque";
 import "@fontsource-variable/public-sans";
 import "./site.css";
-import { SITE, SUPPORT } from "./brand";
+import { COMPANY, SITE, SUPPORT } from "./brand";
 import { SOLUTIONS } from "./content";
 import { Header } from "./header";
 import { JsonLd } from "./seo";
@@ -72,7 +72,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
           <div className="base">
-            <span>© {new Date().getFullYear()} Margewise</span>
+            <span>© {new Date().getFullYear()} Margewise is a product of {COMPANY}</span>
             <span>Profit analytics for Shopify stores</span>
           </div>
         </div>
